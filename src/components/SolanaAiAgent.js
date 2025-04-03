@@ -352,7 +352,7 @@ IMPORTANT INSTRUCTIONS:
       });
 
       // Call our backend proxy
-      const response = await fetch("http://localhost:3001/api/claude", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/claude`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
