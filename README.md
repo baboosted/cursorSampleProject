@@ -1,6 +1,6 @@
-# Pathos - Workflow Automation Platform with Solana Integration
+# Pathos - Solana MCP Integration
 
-A modern, responsive React website for Pathos, a workflow automation platform built for growing teams. The design features a dark mode theme with green gradients, a hero section with compelling copy, and an interactive dashboard design. Now includes Solana blockchain integration for enhanced workflow automation.
+Pathos transforms complex Solana blockchain operations into simple conversations. By combining AI with crypto functionality, we've created a chat interface that makes managing your Solana assets as easy as texting a friend. Whether you're a crypto novice or expert, Pathos is your intelligent companion for seamless blockchain interactions.
 
 ## Features
 
