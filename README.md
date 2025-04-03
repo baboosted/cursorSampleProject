@@ -127,9 +127,3 @@ The website showcases:
 ## Security Note
 
 When using the Solana functionality, all transactions are securely signed through Phantom wallet without exposing your private keys. Always verify transaction details in your Phantom wallet before confirming any transaction.
-
-## Customization
-
-You can easily customize the colors and styles by modifying the CSS variables in the `:root` selector in the `src/index.css` file. # cursorSampleProject
-# cursorSampleProject
-# cursorSampleProject
