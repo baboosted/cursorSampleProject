@@ -106,29 +106,6 @@ To use this feature:
 3. Connect your wallet through the application
 4. Send and sign transactions securely
 
-## Service Fee System
-
-The application includes a monetization system that charges a small fee for SOL transfers:
-
-- Default fee: 2.5% of the transaction amount
-- Minimum fee: 0.001 SOL
-- Maximum fee: 0.1 SOL
-- Fees are automatically calculated and displayed to users
-- Users can see the exact amount the recipient will receive
-- Optional fee skipping (can be disabled by removing the checkbox)
-
-To configure the fee system, modify the `feeConfig` object in `src/services/phantomWalletService.js`:
-
-```javascript
-feeConfig: {
-  feePercentage: 2.5, // Fee percentage
-  feeCollectorAddress: 'CkqWGsRAz9115jTZqQ9VwXYqQSdhyLZk2tBGtVaUH2Nf', // Your SOL address to receive fees
-  minFeeAmount: 0.001 * LAMPORTS_PER_SOL, // Minimum fee in lamports
-  maxFeeAmount: 0.1 * LAMPORTS_PER_SOL, // Maximum fee in lamports
-}
-```
-
-Be sure to replace `CkqWGsRAz9115jTZqQ9VwXYqQSdhyLZk2tBGtVaUH2Nf` with your actual Solana wallet address to receive the fees.
 
 ## Building for Production
 
