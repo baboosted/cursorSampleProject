@@ -352,7 +352,8 @@ IMPORTANT INSTRUCTIONS:
       });
 
       // Call our backend proxy
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/claude`, {
+      const apiUrl = process.env.REACT_APP_API_URL || "/api";
+      const response = await fetch(`${apiUrl}/claude`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
