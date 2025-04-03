@@ -50,7 +50,7 @@ const SolanaAiAgent = () => {
         });
       }
     };
-  }, []);
+  }, [handleWalletConnection]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -499,50 +499,8 @@ IMPORTANT INSTRUCTIONS:
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    processInput();
-  };
-
-  // Add a simple Claude API test function
-  const testClaudeApi = async () => {
-    try {
-      setLoading(true);
-      addAssistantMessage("Testing Claude API connection...");
-
-      // Test the backend health endpoint first
-      const healthResponse = await fetch("http://localhost:3001/health");
-      if (!healthResponse.ok) {
-        throw new Error("Backend server is not running");
-      }
-
-      // Test the Claude API through our backend
-      const response = await fetch("http://localhost:3001/api/claude", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: "Hello, are you working?" }],
-          system: "You are a helpful AI assistant.",
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        addAssistantMessage(
-          `Claude API test failed: ${response.status} - ${errorText}`
-        );
-        return;
-      }
-
-      const data = await response.json();
-      addAssistantMessage(
-        `Claude API test successful! Response: "${data.content[0].text}"`
-      );
-    } catch (error) {
-      console.error("Claude API test error:", error);
-      addAssistantMessage(`Claude API test error: ${error.message}`);
-    } finally {
-      setLoading(false);
+    if (input.trim()) {
+      processInput();
     }
   };
 

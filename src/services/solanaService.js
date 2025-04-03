@@ -5,7 +5,6 @@ import {
   Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
-  clusterApiUrl,
 } from "@solana/web3.js";
 import { Buffer } from "buffer";
 
