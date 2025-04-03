@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingScreen from "./LoadingScreen";
+import MetricCard from "./MetricCard";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -29,49 +30,95 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section
         style={{
-          background: "linear-gradient(135deg, #9945FF 0%, #14F195 100%)",
-          color: "white",
-          padding: "4rem 1rem",
+          background: "var(--color-background)",
+          color: "var(--color-text)",
+          padding: "5rem 1rem 10rem",
           textAlign: "center",
           position: "relative",
           overflow: "hidden",
         }}
         className="hero-section"
       >
+        {/* Green Ball Gradient Background */}
         <div
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.2)",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -40%)",
+            width: "800px",
+            height: "800px",
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(74, 222, 128, 1) 0%, rgba(22, 163, 74, 0.5) 40%, rgba(22, 163, 74, 0) 70%)",
+            filter: "blur(70px)",
             zIndex: 1,
+            pointerEvents: "none",
+            opacity: 0.9,
           }}
-        />
-        <div style={{ position: "relative", zIndex: 2 }}>
+          className="green-ball-gradient"
+        ></div>
+        
+        {/* Remove Secondary and Tertiary Gradients */}
+        
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            maxWidth: "800px",
+            margin: "0 auto",
+          }}
+        >
           <div
             style={{
-              display: "inline-block",
-              backgroundColor: "rgba(255, 255, 255, 0.1)",
-              padding: "0.5rem 1.5rem",
-              borderRadius: "50px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              backgroundColor: "var(--color-success-light)",
+              color: "#166534",
+              padding: "0.5rem 1rem",
+              borderRadius: "20px",
               marginBottom: "2rem",
-              backdropFilter: "blur(5px)",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
+              border: "1px solid var(--color-success-border)",
+              fontWeight: "500",
+              fontSize: "0.9rem",
             }}
           >
-            <span style={{ fontSize: "1.1rem", fontWeight: "bold" }}>
-              🚀 Solana's First MCP Implementation
+            <span
+              style={{
+                display: "inline-block",
+                width: "8px",
+                height: "8px",
+                backgroundColor: "var(--color-success)",
+                borderRadius: "50%",
+              }}
+            ></span>
+            We are now live!
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="8" cy="8" r="1.5" fill="#166534" />
+                <circle cx="4" cy="8" r="1.5" fill="#166534" />
+                <circle cx="12" cy="8" r="1.5" fill="#166534" />
+              </svg>
             </span>
           </div>
           <h1
             style={{
-              fontSize: "2.5rem",
+              fontSize: "5rem",
               marginBottom: "1.5rem",
-              fontWeight: "bold",
-              lineHeight: "1.2",
-              textShadow: "2px 2px 4px rgba(0, 0, 0, 0.3)",
+              fontWeight: "700",
+              lineHeight: "1.1",
+              fontFamily: "Playfair Display, serif",
             }}
             className="hero-title"
           >
@@ -79,273 +126,277 @@ const LandingPage = () => {
           </h1>
           <p
             style={{
-              fontSize: "1.1rem",
-              marginBottom: "2rem",
+              fontSize: "1.125rem",
+              marginBottom: "2.5rem",
+              color: "var(--color-text-muted)",
               maxWidth: "600px",
-              margin: "0 auto 2rem",
-              opacity: "0.95",
-              textShadow: "1px 1px 2px rgba(0, 0, 0, 0.2)",
+              margin: "0 auto 2.5rem",
             }}
             className="hero-description"
           >
-            Experience the future of Solana blockchain interaction with our
-            pioneering MCP implementation. Send crypto, check balances, and get
-            instant blockchain insights - all through natural conversation.
+            Experience the future of Solana blockchain interaction with our pioneering MCP implementation. Send crypto, check balances, and get instant blockchain insights - all through natural conversation.
           </p>
-          <button
-            onClick={handleStartChatting}
+          <div
             style={{
-              padding: "0.8rem 2rem",
-              fontSize: "1rem",
-              backgroundColor: "white",
-              color: "#9945FF",
-              border: "none",
-              borderRadius: "50px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "transform 0.2s, box-shadow 0.2s",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-            }}
-            className="cta-button"
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.3)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
+              display: "flex",
+              gap: "1rem",
+              justifyContent: "center",
             }}
           >
-            Start Chatting Now
-          </button>
-        </div>
-      </section>
+            <button
+              onClick={handleStartChatting}
+              style={{
+                padding: "0.75rem 1.5rem",
+                fontSize: "0.85rem",
+                backgroundColor: "var(--color-primary)",
+                color: "var(--color-background)",
+                border: "none",
+                borderRadius: "30px",
+                cursor: "pointer",
+                fontWeight: "600",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+              className="btn btn-primary"
+            >
+              START CHATTING NOW
+            </button>
+          </div>
+          
+          {/* Replace Dashboard Showcase with Metric Cards */}
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: "900px",
+              margin: "3rem auto 0",
+              zIndex: 2,
+            }}
+            className="dashboard-showcase"
+          >
+            {/* Notification above metric cards */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                padding: "0.75rem 1rem",
+                backgroundColor: "var(--color-success-light)",
+                borderRadius: "8px",
+                fontSize: "0.9rem",
+                color: "#166534",
+                marginBottom: "1.5rem",
+              }}
+              className="notification-icon-success"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="8" cy="8" r="8" fill="#22C55E" fillOpacity="0.1"/>
+                <path d="M11.5 6L7 10.5L4.5 8" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>All 1100 transactions are successfully matched</span>
+            </div>
 
-      {/* Features Section */}
-      <section
-        style={{
-          padding: "4rem 1rem",
-          backgroundColor: "var(--color-card)",
-        }}
-        className="features-section"
-      >
+            {/* Metric Cards Container */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "1.5rem",
+              }}
+              className="dashboard-grid"
+            >
+              {/* Metric Card 1: Transactions */}
+              <div
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "8px",
+                  padding: "1.25rem",
+                  border: "1px solid var(--color-border)",
+                  boxShadow: "0 2px 10px rgba(0, 0, 0, 0.05)",
+                }}
+                className="metric-card"
+              >
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "var(--color-text-muted)",
+                    marginBottom: "0.5rem",
+                  }}
+                  className="metric-title"
+                >
+                  Transaction Volume
+                </div>
+                <div
+                  style={{
+                    fontSize: "1.75rem",
+                    fontWeight: "700",
+                    marginBottom: "0.5rem",
+                    color: "var(--color-text)",
+                  }}
+                  className="metric-value"
+                >
+                  14,856 SOL
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    color: "#22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
+                  }}
+                  className="metric-change positive"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 2.5V9.5M6 2.5L9 5.5M6 2.5L3 5.5" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  +24.3%
+                </div>
+              </div>
+
+              {/* Metric Card 2: Wallets */}
+              <div
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "8px",
+                  padding: "1.25rem",
+                  border: "1px solid var(--color-border)",
+                  boxShadow: "0 2px 10px rgba(0, 0, 0, 0.05)",
+                }}
+                className="metric-card"
+              >
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "var(--color-text-muted)",
+                    marginBottom: "0.5rem",
+                  }}
+                  className="metric-title"
+                >
+                  Connected Wallets
+                </div>
+                <div
+                  style={{
+                    fontSize: "1.75rem",
+                    fontWeight: "700",
+                    marginBottom: "0.5rem",
+                    color: "var(--color-text)",
+                  }}
+                  className="metric-value"
+                >
+                  5,234
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    color: "#22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
+                  }}
+                  className="metric-change positive"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 2.5V9.5M6 2.5L9 5.5M6 2.5L3 5.5" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  +18.7%
+                </div>
+              </div>
+
+              {/* Metric Card 3: Performance */}
+              <div
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: "8px",
+                  padding: "1.25rem",
+                  border: "1px solid var(--color-border)",
+                  boxShadow: "0 2px 10px rgba(0, 0, 0, 0.05)",
+                }}
+                className="metric-card"
+              >
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "var(--color-text-muted)",
+                    marginBottom: "0.5rem",
+                  }}
+                  className="metric-title"
+                >
+                  Network Performance
+                </div>
+                <div
+                  style={{
+                    fontSize: "1.75rem",
+                    fontWeight: "700",
+                    marginBottom: "0.5rem",
+                    color: "var(--color-text)",
+                  }}
+                  className="metric-value"
+                >
+                  98.7%
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    color: "#22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
+                  }}
+                  className="metric-change positive"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 2.5V9.5M6 2.5L9 5.5M6 2.5L3 5.5" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  +3.2%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Background Gradient */}
         <div
           style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "2rem",
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            width: "100%",
+            height: "350px",
+            background: "linear-gradient(to top, rgba(22, 163, 74, 0.8), rgba(74, 222, 128, 0.3) 50%, rgba(247, 254, 231, 0) 90%)",
+            zIndex: 0,
+            pointerEvents: "none",
           }}
-          className="features-grid"
-        >
-          <div
-            style={{
-              padding: "2rem",
-              backgroundColor: "var(--color-background)",
-              borderRadius: "15px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-              transition: "transform 0.2s, box-shadow 0.2s",
-            }}
-            className="feature-card"
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.1)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.05)";
-            }}
-          >
-            <h3
-              style={{
-                color: "#9945FF",
-                marginBottom: "1rem",
-                fontWeight: "bold",
-              }}
-            >
-              Revolutionary MCP Technology
-            </h3>
-            <p style={{ color: "var(--color-text)", lineHeight: "1.6" }}>
-              The first implementation of Message Control Protocol on Solana,
-              enabling seamless communication between AI and blockchain.
-            </p>
-          </div>
-          <div
-            style={{
-              padding: "2rem",
-              backgroundColor: "var(--color-background)",
-              borderRadius: "15px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-              transition: "transform 0.2s, box-shadow 0.2s",
-            }}
-            className="feature-card"
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.1)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.05)";
-            }}
-          >
-            <h3
-              style={{
-                color: "#9945FF",
-                marginBottom: "1rem",
-                fontWeight: "bold",
-              }}
-            >
-              Real-time Insights
-            </h3>
-            <p style={{ color: "var(--color-text)", lineHeight: "1.6" }}>
-              Get instant balance updates, transaction history, and blockchain
-              analytics through simple conversation.
-            </p>
-          </div>
-          <div
-            style={{
-              padding: "2rem",
-              backgroundColor: "var(--color-background)",
-              borderRadius: "15px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-              transition: "transform 0.2s, box-shadow 0.2s",
-            }}
-            className="feature-card"
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.1)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.05)";
-            }}
-          >
-            <h3
-              style={{
-                color: "#9945FF",
-                marginBottom: "1rem",
-                fontWeight: "bold",
-              }}
-            >
-              Seamless Transactions
-            </h3>
-            <p style={{ color: "var(--color-text)", lineHeight: "1.6" }}>
-              Send SOL to any address with just a simple command. No need to
-              navigate complex interfaces or remember technical details.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section
-        style={{
-          padding: "4rem 1rem",
-          backgroundColor: "var(--color-background)",
-          textAlign: "center",
-        }}
-        className="cta-section"
-      >
-        <div
-          style={{
-            maxWidth: "800px",
-            margin: "0 auto",
-            padding: "2rem",
-            backgroundColor: "var(--color-card)",
-            borderRadius: "15px",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "2rem",
-              marginBottom: "1.5rem",
-              fontWeight: "bold",
-              color: "var(--color-text)",
-            }}
-          >
-            Ready to Experience the Future?
-          </h2>
-          <p
-            style={{
-              fontSize: "1.1rem",
-              marginBottom: "2rem",
-              color: "var(--color-text-muted)",
-            }}
-          >
-            Connect your Phantom wallet and start chatting with your AI
-            assistant today. No technical knowledge required!
-          </p>
-          <button
-            onClick={handleStartChatting}
-            style={{
-              padding: "0.8rem 2rem",
-              fontSize: "1rem",
-              backgroundColor: "#9945FF",
-              color: "white",
-              border: "none",
-              borderRadius: "50px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "transform 0.2s, box-shadow 0.2s",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-            }}
-            className="cta-button"
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.3)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
-            }}
-          >
-            Start Chatting Now
-          </button>
-        </div>
+          className="hero-background-gradient"
+        ></div>
       </section>
 
       <style>
         {`
-          @media (min-width: 768px) {
-            .hero-section {
-              padding: 6rem 2rem !important;
-            }
-            
+          @media (max-width: 768px) {
             .hero-title {
               font-size: 3.5rem !important;
-            }
-            
-            .hero-description {
-              font-size: 1.25rem !important;
-            }
-            
-            .cta-button {
-              padding: 1rem 2.5rem !important;
-              font-size: 1.1rem !important;
-            }
-            
-            .features-section {
-              padding: 5rem 2rem !important;
-            }
-            
-            .cta-section {
-              padding: 5rem 2rem !important;
-            }
-          }
-          
-          @media (max-width: 480px) {
-            .hero-title {
-              font-size: 2rem !important;
             }
             
             .hero-description {
               font-size: 1rem !important;
             }
             
-            .feature-card {
-              padding: 1.5rem !important;
+            .dashboard-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+          
+          @media (max-width: 640px) {
+            .hero-title {
+              font-size: 3rem !important;
+            }
+            
+            .hero-section {
+              padding-top: 4rem !important;
             }
           }
         `}

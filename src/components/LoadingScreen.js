@@ -19,11 +19,10 @@ const LoadingScreen = () => {
     >
       <div
         style={{
-          width: "80px",
-          height: "80px",
-          border: "4px solid transparent",
-          borderTop: "4px solid #9945FF",
-          borderRight: "4px solid #14F195",
+          width: "60px",
+          height: "60px",
+          border: "3px solid #f3f4f6",
+          borderTop: "3px solid var(--color-primary)",
           borderRadius: "50%",
           animation: "spin 1s linear infinite",
         }}
@@ -32,20 +31,20 @@ const LoadingScreen = () => {
         style={{
           marginTop: "2rem",
           color: "var(--color-text)",
-          fontSize: "1.5rem",
-          fontWeight: "bold",
+          fontSize: "1.25rem",
+          fontWeight: "600",
         }}
       >
-        Loading AI Assistant
+        Loading Pathos
       </h2>
       <p
         style={{
           marginTop: "0.5rem",
           color: "var(--color-text-muted)",
-          fontSize: "1rem",
+          fontSize: "0.9rem",
         }}
       >
-        Preparing your personalized experience...
+        Preparing your personal solana mcp bot...
       </p>
       <style>
         {`
