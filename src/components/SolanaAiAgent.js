@@ -155,7 +155,7 @@ const SolanaAiAgent = () => {
     if (walletConnected) {
       fetchWalletBalance();
     }
-  }, [walletConnected]);
+  }, [walletConnected, fetchWalletBalance]);
 
   const handleDisconnect = async () => {
     try {
