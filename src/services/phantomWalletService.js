@@ -30,6 +30,18 @@ const phantomWalletService = {
   },
 
   /**
+   * Check if wallet is connected
+   */
+  isConnected: () => {
+    try {
+      const provider = window?.solana;
+      return provider?.isPhantom === true && provider?.isConnected === true;
+    } catch (error) {
+      return false;
+    }
+  },
+
+  /**
    * Get the Phantom wallet provider
    */
   getProvider: () => {
@@ -207,7 +219,7 @@ const phantomWalletService = {
           );
         }
       } else {
-        // No fee, send full amount
+        // Simple transfer without fee
         transaction.add(
           SystemProgram.transfer({
             fromPubkey,
@@ -222,11 +234,18 @@ const phantomWalletService = {
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = fromPubkey;
 
-      // Send the transaction to the wallet for signing
-      const { signature } = await provider.signAndSendTransaction(transaction);
+      // Sign and send the transaction
+      const signed = await provider.signTransaction(transaction);
+      const signature = await connection.sendRawTransaction(
+        signed.serialize(),
+        {
+          skipPreflight: false,
+          preflightCommitment: "confirmed",
+        }
+      );
 
       // Confirm transaction
-      await connection.confirmTransaction(
+      const confirmation = await connection.confirmTransaction(
         {
           signature,
           blockhash,
@@ -235,25 +254,10 @@ const phantomWalletService = {
         "confirmed"
       );
 
-      return {
-        signature,
-        fee: shouldChargeFee ? phantomWalletService.calculateFee(amount) : null,
-      };
+      return { signature, confirmation };
     } catch (error) {
-      console.error("Error transferring SOL via Phantom:", error);
+      console.error("Error transferring SOL:", error);
       throw error;
-    }
-  },
-
-  /**
-   * Check if the wallet is connected
-   */
-  isConnected: () => {
-    try {
-      const provider = phantomWalletService.getProvider();
-      return provider.isConnected;
-    } catch (error) {
-      return false;
     }
   },
 

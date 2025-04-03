@@ -13,6 +13,8 @@ function App() {
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
+          width: "100%",
+          overflowX: "hidden",
         }}
       >
         <Header />
@@ -22,6 +24,7 @@ function App() {
             display: "flex",
             flexDirection: "column",
             background: "var(--color-background)",
+            width: "100%",
           }}
         >
           <Routes>
@@ -36,7 +39,10 @@ function App() {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "2rem 0",
+                    padding: "1rem",
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
                   }}
                 >
                   <SolanaAiAgent />

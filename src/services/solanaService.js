@@ -18,8 +18,6 @@ const SOLANA_RPC = HELIUS_API_KEY
   ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
   : "https://api.mainnet-beta.solana.com";
 
-console.log("Using Helius RPC endpoint directly");
-
 // Configure connection with optimized settings
 const connection = new Connection(SOLANA_RPC, {
   commitment: "confirmed",
@@ -32,9 +30,7 @@ const connection = new Connection(SOLANA_RPC, {
  */
 export const getCurrentSlot = async () => {
   try {
-    console.log("Attempting to get current slot from Helius");
     const slot = await connection.getSlot();
-    console.log("Successfully got slot:", slot);
     return slot;
   } catch (error) {
     console.error("Error getting current slot:", error.message);
@@ -48,10 +44,8 @@ export const getCurrentSlot = async () => {
  */
 export const getAccountBalance = async (address) => {
   try {
-    console.log("Getting balance for address:", address);
     const publicKey = new PublicKey(address);
     const balance = await connection.getBalance(publicKey);
-    console.log("Successfully got balance:", balance / LAMPORTS_PER_SOL, "SOL");
     return balance / LAMPORTS_PER_SOL; // Convert lamports to SOL
   } catch (error) {
     console.error("Error getting account balance:", error.message);
@@ -158,15 +152,8 @@ export const requestAirdrop = async (address, amount = 1) => {
 };
 
 // Check connection on initialization
-console.log("Initializing Solana connection to Helius");
 connection
   .getLatestBlockhash()
-  .then(({ blockhash }) =>
-    console.log(
-      "Initial Helius connection successful, blockhash:",
-      blockhash.substr(0, 10) + "..."
-    )
-  )
   .catch((err) =>
     console.error("Initial Helius connection failed:", err.message)
   );

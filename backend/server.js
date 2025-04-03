@@ -20,12 +20,6 @@ app.post("/api/claude", async (req, res) => {
   try {
     const { messages, system } = req.body;
 
-    console.log(
-      "Making Claude API request with model:",
-      process.env.CLAUDE_MODEL
-    );
-    console.log("API URL:", process.env.CLAUDE_API_URL);
-
     const response = await fetch(process.env.CLAUDE_API_URL, {
       method: "POST",
       headers: {
@@ -49,7 +43,6 @@ app.post("/api/claude", async (req, res) => {
     }
 
     const data = await response.json();
-    console.log("Claude API response:", data);
     res.json(data);
   } catch (error) {
     console.error("Server error:", error);
@@ -60,8 +53,4 @@ app.post("/api/claude", async (req, res) => {
 // Start server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
-  console.log("Claude API configuration:");
-  console.log("- Model:", process.env.CLAUDE_MODEL);
-  console.log("- API URL:", process.env.CLAUDE_API_URL);
-  console.log("- API Version:", process.env.ANTHROPIC_VERSION);
 });

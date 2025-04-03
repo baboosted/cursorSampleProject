@@ -7,7 +7,7 @@ const SolanaAiAgent = () => {
     {
       role: "assistant",
       content:
-        "Hello! I'm your Solana AI assistant. I can help with Solana blockchain operations like checking balances and making transfers. What would you like to do today?",
+        "Hello! I'm your Solana AI assistant. I can help with Solana blockchain operations like checking balances and making transfers. To get started, please connect your Phantom wallet by clicking the 'Connect Wallet' button above, or simply ask me to connect your wallet in chat. What would you like to do today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -17,8 +17,10 @@ const SolanaAiAgent = () => {
   const [walletBalance, setWalletBalance] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("checking");
   const [currentSlot, setCurrentSlot] = useState(null);
+  const [typingIndicator, setTypingIndicator] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Check if Phantom is installed and connected on component mount
   useEffect(() => {
@@ -37,13 +39,30 @@ const SolanaAiAgent = () => {
 
     // Update blockchain slot every 30 seconds
     const interval = setInterval(fetchCurrentSlot, 30000);
-    return () => clearInterval(interval);
+
+    // Cleanup function to disconnect wallet when component unmounts
+    return () => {
+      clearInterval(interval);
+      // Disconnect wallet if connected
+      if (phantomWalletService.isConnected()) {
+        phantomWalletService.disconnect().catch((err) => {
+          console.error("Error disconnecting wallet during cleanup:", err);
+        });
+      }
+    };
   }, []);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Focus input on component mount
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   // Update wallet balance when connected
   useEffect(() => {
@@ -80,6 +99,14 @@ const SolanaAiAgent = () => {
   const handleWalletConnection = async () => {
     try {
       setLoading(true);
+
+      // Check if already connected to avoid duplicate connection
+      if (phantomWalletService.isConnected() && walletConnected) {
+        // Just fetch the balance and return
+        await fetchWalletBalance();
+        return;
+      }
+
       const pubKey = await phantomWalletService.connect();
       setPublicKey(pubKey);
       setWalletConnected(true);
@@ -241,11 +268,31 @@ const SolanaAiAgent = () => {
   };
 
   const addUserMessage = (content) => {
-    setMessages((prev) => [...prev, { role: "user", content }]);
+    setMessages((prevMessages) => [...prevMessages, { role: "user", content }]);
   };
 
   const addAssistantMessage = (content) => {
-    setMessages((prev) => [...prev, { role: "assistant", content }]);
+    // Set typing indicator immediately
+    setTypingIndicator(true);
+
+    // Calculate a natural typing delay based on message length
+    // Average typing speed is about 80 words per minute, or ~400 characters per minute
+    // This means ~6.7 characters per second
+    const messageLength = content.length;
+    const baseDelay = 200; // Base delay of 200ms
+    const typingDelay = Math.min(baseDelay + (messageLength / 6.7) * 100, 800); // Cap at 800ms
+
+    // Force a re-render to ensure typing indicator is visible
+    setTimeout(() => {
+      // Simulate natural typing delay
+      setTimeout(() => {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content },
+        ]);
+        setTypingIndicator(false);
+      }, typingDelay);
+    }, 0);
   };
 
   // Helper function to format addresses for display
@@ -257,10 +304,6 @@ const SolanaAiAgent = () => {
   // Call Claude API to process user input
   const callClaudeApi = async (messageHistory, userMessage) => {
     try {
-      // Log debugging information
-      console.log("=== Claude API Request Debug ===");
-      console.log("API URL:", "http://localhost:3001/api/claude");
-
       // Prepare system prompt with context
       const systemPrompt = `You are an AI assistant specializing in Solana blockchain operations.
 
@@ -319,24 +362,14 @@ IMPORTANT INSTRUCTIONS:
         }),
       });
 
-      console.log("API Response Status:", response.status, response.statusText);
-
       if (!response.ok) {
-        console.error(
-          "Claude API response error:",
-          response.status,
-          response.statusText
-        );
         const errorText = await response.text();
-        console.error("Claude API error details:", errorText);
         throw new Error(`Claude API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("Claude API response:", data);
 
       if (!data.content || !data.content[0] || !data.content[0].text) {
-        console.error("Unexpected Claude API response format:", data);
         throw new Error("Unexpected Claude API response format");
       }
 
@@ -402,14 +435,14 @@ IMPORTANT INSTRUCTIONS:
   const processInput = async () => {
     if (!input.trim()) return;
 
-    const userMsg = input.trim();
-    addUserMessage(userMsg);
+    const userInput = input.trim();
     setInput("");
+    addUserMessage(userInput);
     setLoading(true);
 
     try {
       // Call Claude API
-      const claudeResponse = await callClaudeApi(messages, userMsg);
+      const claudeResponse = await callClaudeApi(messages, userInput);
 
       // Extract action and clean response
       const { response, action } = extractAction(claudeResponse);
@@ -422,9 +455,9 @@ IMPORTANT INSTRUCTIONS:
         await executeAction(action);
       }
     } catch (error) {
-      console.error("Error processing with Claude:", error);
+      console.error("Error processing input:", error);
       addAssistantMessage(
-        `There was an error with the Claude API: ${error.message}. Please try again later or check the console for more details.`
+        "I'm sorry, I encountered an error processing your request. Please try again."
       );
     } finally {
       setLoading(false);
@@ -452,6 +485,21 @@ IMPORTANT INSTRUCTIONS:
       default:
         console.warn(`Unknown action type: ${action.type}`);
     }
+  };
+
+  // Handle wallet connection button click
+  const handleConnect = async () => {
+    if (walletConnected) {
+      await handleDisconnect();
+    } else {
+      await handleWalletConnection();
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    processInput();
   };
 
   // Add a simple Claude API test function
@@ -500,214 +548,409 @@ IMPORTANT INSTRUCTIONS:
 
   return (
     <div
-      className="solana-ai-agent"
       style={{
         width: "100%",
-        maxWidth: "900px",
+        maxWidth: "1200px",
         margin: "0 auto",
-        padding: "1.5rem",
-        display: "flex",
-        flexDirection: "column",
-        height: "700px",
-        border: "1px solid var(--color-primary)",
-        borderRadius: "12px",
-        background: "var(--color-card)",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        padding: "1rem",
+        boxSizing: "border-box",
       }}
+      className="solana-agent-container"
     >
+      {/* Header */}
       <div
-        className="agent-header"
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "1rem",
-          borderBottom: "1px solid var(--color-primary-dark)",
-          marginBottom: "1rem",
-          background: "rgba(0, 0, 0, 0.02)",
-          borderRadius: "8px",
-        }}
-      >
-        <div
-          className="agent-title"
-          style={{
-            fontWeight: "bold",
-            fontSize: "1.3rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
-        >
-          <span style={{ color: "var(--color-primary)" }}>
-            Solana AI Assistant
-          </span>
-          <span
-            style={{
-              fontSize: "0.7rem",
-              fontWeight: "normal",
-              padding: "2px 6px",
-              backgroundColor: "var(--color-primary)",
-              color: "white",
-              borderRadius: "4px",
-            }}
-          >
-            Powered by Claude
-          </span>
-          <button
-            onClick={testClaudeApi}
-            disabled={loading}
-            style={{
-              fontSize: "0.7rem",
-              padding: "4px 8px",
-              backgroundColor: loading ? "#ccc" : "#444",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: loading ? "not-allowed" : "pointer",
-              transition: "background-color 0.2s",
-            }}
-          >
-            {loading ? "Testing..." : "Test API"}
-          </button>
-        </div>
-        <div
-          style={{
-            fontSize: "0.75rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
-        >
-          <span
-            style={{
-              color:
-                connectionStatus === "connected"
-                  ? "var(--color-primary-light)"
-                  : connectionStatus === "error"
-                  ? "#ef4444"
-                  : "var(--color-text-muted)",
-            }}
-          >
-            {connectionStatus === "connected"
-              ? "● Blockchain Connected"
-              : connectionStatus === "error"
-              ? "● Connection Error"
-              : "● Checking..."}
-          </span>
-
-          {walletConnected && (
-            <span
-              style={{
-                color: "var(--color-primary-light)",
-                backgroundColor: "rgba(32, 129, 226, 0.1)",
-                padding: "0.25rem 0.5rem",
-                borderRadius: "4px",
-                fontSize: "0.7rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.25rem",
-              }}
-            >
-              <span>● Wallet: {formatAddress(publicKey)}</span>
-              {walletBalance !== null && (
-                <span style={{ marginLeft: "0.25rem" }}>
-                  ({walletBalance.toFixed(4)} SOL)
-                </span>
-              )}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div
-        className="messages-container"
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "1rem",
-          display: "flex",
-          flexDirection: "column",
+          marginBottom: "2rem",
+          flexWrap: "wrap",
           gap: "1rem",
-          marginBottom: "1rem",
         }}
+        className="agent-header"
       >
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            style={{
-              display: "flex",
-              justifyContent:
-                message.role === "user" ? "flex-end" : "flex-start",
-              marginBottom: "0.5rem",
-            }}
-          >
+        <h1
+          style={{
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+            color: "var(--color-text)",
+            margin: 0,
+          }}
+          className="agent-title"
+        >
+          Solana AI Assistant
+        </h1>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            flexWrap: "wrap",
+          }}
+          className="wallet-info"
+        >
+          {walletConnected && walletBalance !== null && (
             <div
               style={{
-                maxWidth: "80%",
-                padding: "0.8rem 1rem",
-                borderRadius: "12px",
-                backgroundColor:
-                  message.role === "user"
-                    ? "var(--color-primary)"
-                    : "rgba(0, 0, 0, 0.05)",
-                color: message.role === "user" ? "white" : "inherit",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.5rem 1rem",
+                backgroundColor: "var(--color-card)",
+                borderRadius: "50px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
               }}
+              className="balance-display"
             >
-              {message.content}
+              <span style={{ color: "var(--color-text-muted)" }}>Balance:</span>
+              <span
+                style={{
+                  fontWeight: "bold",
+                  color: "var(--color-text)",
+                }}
+              >
+                {walletBalance} SOL
+              </span>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+          )}
+          <button
+            onClick={handleConnect}
+            style={{
+              padding: "0.5rem 1rem",
+              backgroundColor: walletConnected ? "#14F195" : "#9945FF",
+              color: "white",
+              border: "none",
+              borderRadius: "50px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              transition: "transform 0.2s, box-shadow 0.2s",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+            className="connect-button"
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+            }}
+          >
+            {walletConnected ? "Connected" : "Connect Wallet"}
+          </button>
+        </div>
       </div>
 
+      {/* Chat Container */}
       <div
-        className="input-container"
         style={{
           display: "flex",
-          gap: "0.5rem",
-          padding: "1rem",
-          background: "rgba(0, 0, 0, 0.02)",
-          borderRadius: "8px",
+          flexDirection: "column",
+          height: "calc(100vh - 200px)",
+          backgroundColor: "var(--color-card)",
+          borderRadius: "15px",
+          boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+          overflow: "hidden",
         }}
+        className="chat-container"
       >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && processInput()}
-          placeholder="Type your message..."
-          disabled={loading}
+        {/* Messages */}
+        <div
           style={{
             flex: 1,
-            padding: "0.8rem",
-            border: "1px solid var(--color-primary)",
-            borderRadius: "8px",
-            fontSize: "1rem",
-            background: "white",
-            transition: "border-color 0.2s",
+            overflowY: "auto",
+            padding: "1rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
           }}
-        />
-        <button
-          onClick={processInput}
-          disabled={loading || !input.trim()}
-          style={{
-            padding: "0.8rem 1.5rem",
-            backgroundColor:
-              loading || !input.trim() ? "#ccc" : "var(--color-primary)",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: loading || !input.trim() ? "not-allowed" : "pointer",
-            transition: "background-color 0.2s",
-            fontWeight: "bold",
-          }}
+          className="messages-container"
+          ref={messagesEndRef}
         >
-          {loading ? "Sending..." : "Send"}
-        </button>
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              style={{
+                alignSelf: message.role === "user" ? "flex-end" : "flex-start",
+                maxWidth: "80%",
+                animation: "fadeIn 0.5s ease-out",
+                animationDelay: `${index * 0.1}s`,
+                opacity: 0,
+                animationFillMode: "forwards",
+              }}
+              className={`message-bubble ${message.role}`}
+            >
+              <div
+                style={{
+                  padding: "1rem",
+                  backgroundColor:
+                    message.role === "user"
+                      ? "#9945FF"
+                      : "var(--color-background)",
+                  color:
+                    message.role === "user" ? "white" : "var(--color-text)",
+                  borderRadius: "15px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}
+              >
+                {message.content}
+              </div>
+            </div>
+          ))}
+          {typingIndicator && (
+            <div
+              style={{
+                alignSelf: "flex-start",
+                maxWidth: "80%",
+                animation: "fadeIn 0.3s ease-out",
+                animationFillMode: "forwards",
+                opacity: 0,
+              }}
+              className="typing-indicator"
+            >
+              <div
+                style={{
+                  padding: "1rem",
+                  backgroundColor: "var(--color-background)",
+                  color: "var(--color-text)",
+                  borderRadius: "15px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  display: "flex",
+                  gap: "0.5rem",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minWidth: "60px",
+                }}
+              >
+                <span className="dot"></span>
+                <span className="dot"></span>
+                <span className="dot"></span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input */}
+        <div
+          style={{
+            padding: "1rem",
+            borderTop: "1px solid var(--color-border)",
+            backgroundColor: "var(--color-card)",
+          }}
+          className="input-container"
+        >
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: "flex",
+              gap: "1rem",
+              alignItems: "center",
+            }}
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message..."
+              style={{
+                flex: 1,
+                padding: "0.8rem 1rem",
+                borderRadius: "50px",
+                border: "1px solid var(--color-border)",
+                backgroundColor: "var(--color-background)",
+                color: "var(--color-text)",
+                fontSize: "1rem",
+                outline: "none",
+                transition: "border-color 0.2s, box-shadow 0.2s",
+              }}
+              className="message-input"
+              onFocus={(e) => {
+                e.target.style.borderColor = "#9945FF";
+                e.target.style.boxShadow = "0 0 0 2px rgba(153, 69, 255, 0.2)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "var(--color-border)";
+                e.target.style.boxShadow = "none";
+              }}
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              style={{
+                padding: "0.8rem",
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                backgroundColor: loading || !input.trim() ? "#ccc" : "#9945FF",
+                color: "white",
+                border: "none",
+                cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "transform 0.2s, box-shadow 0.2s",
+              }}
+              className="send-button"
+              onMouseOver={(e) => {
+                if (!loading && input.trim()) {
+                  e.currentTarget.style.transform = "scale(1.1)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(0,0,0,0.2)";
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!loading && input.trim()) {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow = "none";
+                }
+              }}
+            >
+              {loading ? (
+                <div
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    border: "2px solid white",
+                    borderTopColor: "transparent",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                  }}
+                  className="loading-spinner"
+                />
+              ) : (
+                "➤"
+              )}
+            </button>
+          </form>
+        </div>
       </div>
+
+      <style>
+        {`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          
+          .dot {
+            animation: bounce 1.4s infinite;
+            font-size: 1.5rem;
+            line-height: 1;
+          }
+          
+          .dot:nth-child(2) {
+            animation-delay: 0.2s;
+          }
+          
+          .dot:nth-child(3) {
+            animation-delay: 0.4s;
+          }
+          
+          @keyframes bounce {
+            0%, 80%, 100% {
+              transform: translateY(0);
+            }
+            40% {
+              transform: translateY(-5px);
+            }
+          }
+          
+          @media (min-width: 768px) {
+            .solana-agent-container {
+              padding: 2rem !important;
+            }
+            
+            .agent-title {
+              font-size: 2rem !important;
+            }
+            
+            .chat-container {
+              height: calc(100vh - 250px) !important;
+            }
+            
+            .message-bubble {
+              max-width: 70% !important;
+            }
+            
+            .message-input {
+              font-size: 1.1rem !important;
+              padding: 1rem 1.5rem !important;
+            }
+            
+            .send-button {
+              width: 45px !important;
+              height: 45px !important;
+            }
+          }
+          
+          @media (max-width: 480px) {
+            .solana-agent-container {
+              padding: 0.5rem !important;
+            }
+            
+            .agent-header {
+              margin-bottom: 1rem !important;
+            }
+            
+            .agent-title {
+              font-size: 1.25rem !important;
+            }
+            
+            .wallet-info {
+              width: 100% !important;
+              justify-content: space-between !important;
+            }
+            
+            .chat-container {
+              height: calc(100vh - 180px) !important;
+              border-radius: 10px !important;
+            }
+            
+            .messages-container {
+              padding: 0.5rem !important;
+            }
+            
+            .message-bubble {
+              max-width: 90% !important;
+            }
+            
+            .message-bubble > div {
+              padding: 0.8rem !important;
+              font-size: 0.9rem !important;
+            }
+            
+            .input-container {
+              padding: 0.5rem !important;
+            }
+            
+            .message-input {
+              font-size: 0.9rem !important;
+              padding: 0.6rem 1rem !important;
+            }
+            
+            .send-button {
+              width: 35px !important;
+              height: 35px !important;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
