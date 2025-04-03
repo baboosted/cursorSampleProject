@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { getCurrentSlot, getAccountBalance } from "../services/solanaService";
 import phantomWalletService from "../services/phantomWalletService";
 
@@ -21,6 +21,92 @@ const SolanaAiAgent = () => {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const fetchCurrentSlot = async () => {
+    try {
+      setConnectionStatus("checking");
+      const slot = await getCurrentSlot();
+      setCurrentSlot(slot);
+      setConnectionStatus("connected");
+    } catch (err) {
+      console.error("Error getting current slot:", err);
+      setConnectionStatus("error");
+    }
+  };
+
+  const fetchWalletBalance = useCallback(async () => {
+    try {
+      const balance = await phantomWalletService.getBalance();
+      setWalletBalance(balance);
+    } catch (err) {
+      console.error("Error fetching wallet balance:", err);
+    }
+  }, []);
+
+  const addAssistantMessage = useCallback((content) => {
+    // Set typing indicator immediately
+    setTypingIndicator(true);
+
+    // Calculate a natural typing delay based on message length
+    // Average typing speed is about 80 words per minute, or ~400 characters per minute
+    // This means ~6.7 characters per second
+    const messageLength = content.length;
+    const baseDelay = 200; // Base delay of 200ms
+    const typingDelay = Math.min(baseDelay + (messageLength / 6.7) * 100, 800); // Cap at 800ms
+
+    // Force a re-render to ensure typing indicator is visible
+    setTimeout(() => {
+      // Simulate natural typing delay
+      setTimeout(() => {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content },
+        ]);
+        setTypingIndicator(false);
+      }, typingDelay);
+    }, 0);
+  }, []);
+
+  const formatAddress = useCallback((address) => {
+    if (!address) return "";
+    return `${address.slice(0, 4)}...${address.slice(-4)}`;
+  }, []);
+
+  const handleWalletConnection = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      // Check if already connected to avoid duplicate connection
+      if (phantomWalletService.isConnected() && walletConnected) {
+        // Just fetch the balance and return
+        await fetchWalletBalance();
+        return;
+      }
+
+      const pubKey = await phantomWalletService.connect();
+      setPublicKey(pubKey);
+      setWalletConnected(true);
+
+      // Get wallet balance
+      await fetchWalletBalance();
+
+      // Add a message to the chat
+      addAssistantMessage(
+        `Wallet connected successfully! Your address: ${formatAddress(pubKey)}`
+      );
+    } catch (err) {
+      console.error("Error connecting wallet:", err);
+      addAssistantMessage(
+        `Failed to connect wallet: ${err.message}. Please try again.`
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [walletConnected, fetchWalletBalance, addAssistantMessage, formatAddress]);
 
   // Check if Phantom is installed and connected on component mount
   useEffect(() => {
@@ -50,7 +136,7 @@ const SolanaAiAgent = () => {
         });
       }
     };
-  }, [handleWalletConnection]);
+  }, [handleWalletConnection, addAssistantMessage]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -70,61 +156,6 @@ const SolanaAiAgent = () => {
       fetchWalletBalance();
     }
   }, [walletConnected]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const fetchCurrentSlot = async () => {
-    try {
-      setConnectionStatus("checking");
-      const slot = await getCurrentSlot();
-      setCurrentSlot(slot);
-      setConnectionStatus("connected");
-    } catch (err) {
-      console.error("Error getting current slot:", err);
-      setConnectionStatus("error");
-    }
-  };
-
-  const fetchWalletBalance = async () => {
-    try {
-      const balance = await phantomWalletService.getBalance();
-      setWalletBalance(balance);
-    } catch (err) {
-      console.error("Error fetching wallet balance:", err);
-    }
-  };
-
-  const handleWalletConnection = async () => {
-    try {
-      setLoading(true);
-
-      // Check if already connected to avoid duplicate connection
-      if (phantomWalletService.isConnected() && walletConnected) {
-        // Just fetch the balance and return
-        await fetchWalletBalance();
-        return;
-      }
-
-      const pubKey = await phantomWalletService.connect();
-      setPublicKey(pubKey);
-      setWalletConnected(true);
-
-      // Get wallet balance
-      await fetchWalletBalance();
-
-      // Add a message to the chat
-      addAssistantMessage(
-        `Wallet connected successfully! Your address: ${formatAddress(pubKey)}`
-      );
-    } catch (err) {
-      console.error("Connection error:", err);
-      addAssistantMessage(`Failed to connect wallet: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDisconnect = async () => {
     try {
@@ -269,36 +300,6 @@ const SolanaAiAgent = () => {
 
   const addUserMessage = (content) => {
     setMessages((prevMessages) => [...prevMessages, { role: "user", content }]);
-  };
-
-  const addAssistantMessage = (content) => {
-    // Set typing indicator immediately
-    setTypingIndicator(true);
-
-    // Calculate a natural typing delay based on message length
-    // Average typing speed is about 80 words per minute, or ~400 characters per minute
-    // This means ~6.7 characters per second
-    const messageLength = content.length;
-    const baseDelay = 200; // Base delay of 200ms
-    const typingDelay = Math.min(baseDelay + (messageLength / 6.7) * 100, 800); // Cap at 800ms
-
-    // Force a re-render to ensure typing indicator is visible
-    setTimeout(() => {
-      // Simulate natural typing delay
-      setTimeout(() => {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "assistant", content },
-        ]);
-        setTypingIndicator(false);
-      }, typingDelay);
-    }, 0);
-  };
-
-  // Helper function to format addresses for display
-  const formatAddress = (address) => {
-    if (!address || address.length < 10) return address;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   // Call Claude API to process user input
