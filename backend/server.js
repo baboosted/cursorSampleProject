@@ -10,6 +10,12 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
@@ -18,7 +24,14 @@ app.get("/health", (req, res) => {
 // Claude API proxy endpoint
 app.post("/api/claude", async (req, res) => {
   try {
+    console.log("Received Claude API request");
     const { messages, system } = req.body;
+
+    console.log(
+      "Making Claude API request with model:",
+      process.env.CLAUDE_MODEL
+    );
+    console.log("API URL:", process.env.CLAUDE_API_URL);
 
     const response = await fetch(process.env.CLAUDE_API_URL, {
       method: "POST",
@@ -43,6 +56,7 @@ app.post("/api/claude", async (req, res) => {
     }
 
     const data = await response.json();
+    console.log("Claude API response:", data);
     res.json(data);
   } catch (error) {
     console.error("Server error:", error);

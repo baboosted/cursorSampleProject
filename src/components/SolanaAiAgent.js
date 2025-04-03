@@ -353,6 +353,7 @@ IMPORTANT INSTRUCTIONS:
 
       // Call our backend proxy
       const apiUrl = process.env.REACT_APP_API_URL || "/api";
+      console.log("API URL:", apiUrl); // Add logging to debug
       const response = await fetch(`${apiUrl}/claude`, {
         method: "POST",
         headers: {
