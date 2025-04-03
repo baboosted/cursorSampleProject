@@ -351,9 +351,19 @@ IMPORTANT INSTRUCTIONS:
         content: userMessage,
       });
 
+      // Determine API URL based on environment
+      let apiUrl;
+      if (process.env.NODE_ENV === "production") {
+        // In production, use the environment variable or default to /api
+        apiUrl = process.env.REACT_APP_API_URL || "/api";
+      } else {
+        // In development, try to use the environment variable or default to localhost
+        apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
+      }
+
+      console.log("Using API URL:", apiUrl);
+
       // Call our backend proxy
-      const apiUrl = process.env.REACT_APP_API_URL || "/api";
-      console.log("API URL:", apiUrl); // Add logging to debug
       const response = await fetch(`${apiUrl}/claude`, {
         method: "POST",
         headers: {
@@ -367,13 +377,15 @@ IMPORTANT INSTRUCTIONS:
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+        console.error("API error:", response.status, errorText);
+        throw new Error(`API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
 
       if (!data.content || !data.content[0] || !data.content[0].text) {
-        throw new Error("Unexpected Claude API response format");
+        console.error("Unexpected API response format:", data);
+        throw new Error("Unexpected API response format");
       }
 
       return data.content[0].text;

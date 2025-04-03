@@ -66,9 +66,28 @@ app.post("/api/claude", async (req, res) => {
 
 // For local development
 if (process.env.NODE_ENV !== "production") {
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+  // Function to try starting the server on a given port
+  const startServer = (port) => {
+    try {
+      const server = app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+      });
+
+      server.on("error", (err) => {
+        if (err.code === "EADDRINUSE") {
+          console.log(`Port ${port} is busy, trying port ${port + 1}...`);
+          startServer(port + 1);
+        } else {
+          console.error("Server error:", err);
+        }
+      });
+    } catch (err) {
+      console.error("Failed to start server:", err);
+    }
+  };
+
+  // Start the server with the initial port
+  startServer(port);
 }
 
 // For Vercel serverless functions
