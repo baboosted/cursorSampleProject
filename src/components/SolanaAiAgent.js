@@ -584,10 +584,17 @@ IMPORTANT INSTRUCTIONS:
             </div>
           ))}
           {typingIndicator && (
-            <div className="loading">
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
-              <div className="loading-dot"></div>
+            <div className="message ai-message">
+              <div className="message-content">
+                <div className="loading">
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                </div>
+              </div>
+              <div className="message-timestamp">
+                {new Date().toLocaleTimeString()}
+              </div>
             </div>
           )}
           <div ref={messagesEndRef} />

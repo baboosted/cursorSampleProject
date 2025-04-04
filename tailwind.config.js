@@ -1,10 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      screens: {
+        xs: "480px",
+      },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
@@ -61,9 +62,9 @@ module.exports = {
   plugins: [
     function ({ addUtilities }) {
       const newUtilities = {
-        '.size-full': {
-          width: '100%',
-          height: '100%',
+        ".size-full": {
+          width: "100%",
+          height: "100%",
         },
       };
       addUtilities(newUtilities);

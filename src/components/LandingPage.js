@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingScreen from "./LoadingScreen";
 import { BackgroundPaths } from "./ui/background-paths";
@@ -9,6 +9,23 @@ import { SplineSceneBasic } from "./ui/spline-scene-demo";
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Check if device is mobile
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkIfMobile);
+
+    // Clean up
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
 
   const handleStartChatting = () => {
     setIsLoading(true);
@@ -31,7 +48,7 @@ const LandingPage = () => {
                 PATHOS
               </span>
               <span className="text-xs font-medium text-black/40 group-hover:text-black/60 transition-colors">
-                MCP
+                MCP on Solana
               </span>
             </a>
             <div className="flex items-center space-x-6">
@@ -49,11 +66,7 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section className="pt-40 pb-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden min-h-[60vh] bg-white">
         <div className="absolute inset-0 z-0">
-          <BackgroundPaths 
-            title=""
-            hideContent={true}
-            className="h-full"
-          />
+          <BackgroundPaths title="" hideContent={true} className="h-full" />
         </div>
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-20">
@@ -62,12 +75,18 @@ const LandingPage = () => {
                 text="MCP-Enabled Autonomous Agent"
                 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight mb-8 text-black leading-normal"
               />
-            
+
               <p className="text-xl sm:text-2xl text-black/80 max-w-3xl mx-auto leading-relaxed animate-fadeIn mt-12 font-medium">
-                The first operational implementation of the Model Context Protocol (MCP) on Solana, enabling real-time communication between large language models (LLMs) and on-chain programs. A foundational bridge between autonomous AI agents and decentralized infrastructure.
+                The first operational implementation of the Model Context
+                Protocol (MCP) on Solana, enabling real-time communication
+                between large language models (LLMs) and on-chain programs. A
+                foundational bridge between autonomous AI agents and
+                decentralized infrastructure.
               </p>
               <p className="mt-6 text-base sm:text-lg text-black/70 max-w-2xl mx-auto">
-                Unlock the full potential of autonomous AI agents with a standardized protocol layer for blockchain interaction, context retrieval, and transaction execution.
+                Unlock the full potential of autonomous AI agents with a
+                standardized protocol layer for blockchain interaction, context
+                retrieval, and transaction execution.
               </p>
             </div>
           </div>
@@ -93,7 +112,10 @@ const LandingPage = () => {
                 Natural Language
               </h2>
               <p className="text-black/60 leading-relaxed">
-                Use natural language to interface with smart contracts and wallets. No code or CLI needed — ask questions, retrieve on-chain data, or initiate actions through plain, conversational prompts.
+                Use natural language to interface with smart contracts and
+                wallets. No code or CLI needed — ask questions, retrieve
+                on-chain data, or initiate actions through plain, conversational
+                prompts.
               </p>
             </div>
             <div className="p-8 bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
@@ -116,7 +138,9 @@ const LandingPage = () => {
                 Secure Protocol
               </h2>
               <p className="text-black/60 leading-relaxed">
-                MCP provides a cryptographically secure, deterministic layer for message passing between AI agents and blockchain programs — ensuring verifiability, consistency, and trust.
+                MCP provides a cryptographically secure, deterministic layer for
+                message passing between AI agents and blockchain programs —
+                ensuring verifiability, consistency, and trust.
               </p>
             </div>
             <div className="p-8 bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
@@ -139,7 +163,9 @@ const LandingPage = () => {
                 Real-time Data
               </h2>
               <p className="text-black/60 leading-relaxed">
-                Stream live blockchain data into AI agents via natural language queries. Get real-time wallet states, token activity, and contract interactions — all in milliseconds.
+                Stream live blockchain data into AI agents via natural language
+                queries. Get real-time wallet states, token activity, and
+                contract interactions — all in milliseconds.
               </p>
             </div>
           </div>
@@ -165,7 +191,12 @@ const LandingPage = () => {
                 MCP Integration
               </h2>
               <p className="text-xl text-white/60 mb-8 leading-relaxed">
-                Experience the power of the Model Context Protocol (MCP) on Solana — a standardized interface that enables large language models to securely read from and write to blockchain environments. Our implementation bridges decentralized compute with real-time on-chain data, unlocking intelligent automation across Solana's ecosystem.
+                Experience the power of the Model Context Protocol (MCP) on
+                Solana — a standardized interface that enables large language
+                models to securely read from and write to blockchain
+                environments. Our implementation bridges decentralized compute
+                with real-time on-chain data, unlocking intelligent automation
+                across Solana's ecosystem.
               </p>
               <div className="space-y-6">
                 <div className="flex items-start space-x-4 group">
@@ -189,7 +220,9 @@ const LandingPage = () => {
                       AI–Blockchain Bridge
                     </h3>
                     <p className="text-white/60 group-hover:text-white/80 transition-colors">
-                      Connects Claude 3.7 Sonnet directly to Solana's on-chain programs via MCP, enabling real-time state awareness and actionability.
+                      Connects Claude 3.7 Sonnet directly to Solana's on-chain
+                      programs via MCP, enabling real-time state awareness and
+                      actionability.
                     </p>
                   </div>
                 </div>
@@ -214,7 +247,8 @@ const LandingPage = () => {
                       Comprehensive RPC Methods
                     </h3>
                     <p className="text-white/60 group-hover:text-white/80 transition-colors">
-                      Leverage the full RPC suite of Solana through standardized MCP calls — from balance queries to contract invocations.
+                      Leverage the full RPC suite of Solana through standardized
+                      MCP calls — from balance queries to contract invocations.
                     </p>
                   </div>
                 </div>
@@ -239,14 +273,20 @@ const LandingPage = () => {
                       Automated Transactions
                     </h3>
                     <p className="text-white/60 group-hover:text-white/80 transition-colors">
-                      Trigger on-chain transactions and smart contract calls via natural language prompts, mapped to verified intent through MCP.
+                      Trigger on-chain transactions and smart contract calls via
+                      natural language prompts, mapped to verified intent
+                      through MCP.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="relative">
-              <SplineSceneBasic />
+              <div className="w-full h-[300px] sm:h-[400px] md:h-[500px] flex items-center justify-center overflow-hidden">
+                <div className="w-full max-w-[600px] mx-auto">
+                  <SplineSceneBasic />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -288,7 +328,9 @@ const LandingPage = () => {
                 </h3>
               </div>
               <p className="text-black/60 leading-relaxed">
-                Autonomous agents analyze live market data, identify trading opportunities, and execute on-chain trades directly via MCP — delivering low-latency execution across Solana's DeFi ecosystem.
+                Autonomous agents analyze live market data, identify trading
+                opportunities, and execute on-chain trades directly via MCP —
+                delivering low-latency execution across Solana's DeFi ecosystem.
               </p>
             </div>
 
@@ -314,7 +356,9 @@ const LandingPage = () => {
                 </h3>
               </div>
               <p className="text-black/60 leading-relaxed">
-                Automate smart contract execution and dApp interactions using natural language prompts mapped to intent via MCP — eliminating the need for manual scripting or complex UIs.
+                Automate smart contract execution and dApp interactions using
+                natural language prompts mapped to intent via MCP — eliminating
+                the need for manual scripting or complex UIs.
               </p>
             </div>
 
@@ -340,7 +384,9 @@ const LandingPage = () => {
                 </h3>
               </div>
               <p className="text-black/60 leading-relaxed">
-                Stream blockchain events into Claude 3.7 Sonnet and other LLMs via MCP, enabling real-time analysis, anomaly detection, and insight generation in natural language.
+                Stream blockchain events into Claude 3.7 Sonnet and other LLMs
+                via MCP, enabling real-time analysis, anomaly detection, and
+                insight generation in natural language.
               </p>
             </div>
 
@@ -366,7 +412,9 @@ const LandingPage = () => {
                 </h3>
               </div>
               <p className="text-black/60 leading-relaxed">
-                Orchestrate decentralized AI agents that communicate and coordinate across Solana protocols via MCP — supporting complex workflows, DAO tooling, and automated governance.
+                Orchestrate decentralized AI agents that communicate and
+                coordinate across Solana protocols via MCP — supporting complex
+                workflows, DAO tooling, and automated governance.
               </p>
             </div>
           </div>
@@ -374,7 +422,7 @@ const LandingPage = () => {
       </section>
 
       {/* CTA Section - Redesigned */}
-      <section className="py-20 relative overflow-hidden bg-gradient-to-b from-black to-gray-900">
+      <section className="py-12 sm:py-16 md:py-20 relative overflow-hidden bg-gradient-to-b from-black to-gray-900">
         {/* Glow effects */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 left-1/2 w-[800px] h-[800px] -translate-x-1/2 -translate-y-1/2 bg-blue-900/20 rounded-full blur-3xl"></div>
@@ -383,62 +431,82 @@ const LandingPage = () => {
 
         {/* Content container */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             {/* Left content */}
-            <div className="text-left lg:text-left">
-              <h2 className="text-5xl md:text-6xl font-black tracking-tight text-white mb-8 leading-tight">
+            <div className="text-center lg:text-left order-2 lg:order-1 mt-6 sm:mt-8 md:mt-0">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-6 sm:mb-8 leading-tight">
                 Ready to Experience{" "}
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-violet-500">
                   MCP?
                 </span>
               </h2>
-              
-              <div className="space-y-6 mb-10">
-                <p className="text-xl text-white/70">
-                  Join the future of blockchain interaction with our AI-powered protocol
+
+              <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-10">
+                <p className="text-lg sm:text-xl text-white/70">
+                  Join the future of blockchain interaction with our AI-powered
+                  protocol
                 </p>
-                <p className="text-lg text-white/50">
-                  Built with comprehensive RPC methods for seamless blockchain operations
+                <p className="text-base sm:text-lg text-white/50">
+                  Built with comprehensive RPC methods for seamless blockchain
+                  operations
                 </p>
               </div>
-              
+
               <button
                 onClick={handleStartChatting}
-                className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-indigo-500/25"
+                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-indigo-500/25 mb-6 sm:mb-0"
               >
                 Start Chatting Now
               </button>
             </div>
-            
+
             {/* Right content - Globe */}
-            <div className="relative h-[500px] w-full">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="globe-container bg-gradient-to-b from-white/5 to-transparent p-1 rounded-full border border-white/10 w-[350px] h-[350px] flex items-center justify-center shadow-2xl backdrop-blur-sm">
-                  <div className="absolute inset-2 rounded-full glow-effect bg-blue-500/5"></div>
-                  <Globe className="scale-150 opacity-90" />
+            <div className="relative h-[340px] sm:h-[380px] md:h-[500px] w-full order-1 lg:order-2 mb-4 sm:mb-2 lg:mb-0 overflow-visible">
+              <div className="absolute inset-0 flex items-center justify-center overflow-visible">
+                <div className="globe-container bg-gradient-to-b from-white/5 to-transparent p-1 rounded-full border border-white/10 w-[200px] h-[200px] xs:w-[300px] xs:h-[300px] sm:w-[300px] sm:h-[300px] md:w-[350px] md:h-[350px] flex items-center justify-center shadow-2xl backdrop-blur-sm">
+                  <div className="absolute inset-0 rounded-full glow-effect bg-blue-500/5"></div>
+                  <div className="w-full h-full overflow-hidden flex items-center justify-center rounded-full">
+                    <Globe className="w-full h-full opacity-100" />
+                  </div>
                 </div>
               </div>
-              
+
               {/* Animated markers */}
-              <div className="absolute inset-0">
-                <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-500 rounded-full opacity-80 animate-ping" style={{ animationDuration: '3s' }}></div>
-                <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-purple-500 rounded-full opacity-70 animate-ping" style={{ animationDuration: '2.5s' }}></div>
-                <div className="absolute bottom-1/4 right-1/4 w-2 h-2 bg-indigo-500 rounded-full opacity-80 animate-ping" style={{ animationDuration: '4s' }}></div>
-                <div className="absolute top-1/2 right-1/5 w-1 h-1 bg-teal-500 rounded-full opacity-90 animate-ping" style={{ animationDuration: '3.5s' }}></div>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div
+                  className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-500 rounded-full opacity-80 animate-ping"
+                  style={{ animationDuration: "3s" }}
+                ></div>
+                <div
+                  className="absolute top-1/3 right-1/3 w-3 h-3 bg-purple-500 rounded-full opacity-70 animate-ping"
+                  style={{ animationDuration: "2.5s" }}
+                ></div>
+                <div
+                  className="absolute bottom-1/4 right-1/4 w-2 h-2 bg-indigo-500 rounded-full opacity-80 animate-ping"
+                  style={{ animationDuration: "4s" }}
+                ></div>
+                <div
+                  className="absolute top-1/2 right-1/5 w-1 h-1 bg-teal-500 rounded-full opacity-90 animate-ping"
+                  style={{ animationDuration: "3.5s" }}
+                ></div>
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Bottom brand bar */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-black/40 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <span className="text-2xl font-black text-white tracking-tight">PATHOS</span>
-                <span className="text-sm text-white/40 hidden sm:inline">MCP on Solana</span>
+                <span className="text-2xl font-black text-white tracking-tight">
+                  PATHOS
+                </span>
+                <span className="text-sm text-white/40 hidden sm:inline">
+                  MCP on Solana
+                </span>
               </div>
-              
+
               <div className="flex items-center space-x-6">
                 <div className="h-1 w-1 rounded-full bg-green-500 animate-pulse"></div>
                 <span className="text-xs text-white/50">Network Active</span>

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react"
-import createGlobe from "cobe"
-import { cn } from "../../lib/utils"
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import createGlobe from "cobe";
+import { cn } from "../../lib/utils";
 
 const GLOBE_CONFIG = {
   width: 800,
@@ -30,147 +30,200 @@ const GLOBE_CONFIG = {
     { location: [34.6937, 135.5022], size: 0.05 },
     { location: [41.0082, 28.9784], size: 0.06 },
   ],
-}
+};
 
-export function Globe({
-  className,
-  config = GLOBE_CONFIG,
-}) {
-  let phi = 0
-  let width = 0
-  const canvasRef = useRef(null)
-  const pointerInteracting = useRef(null)
-  const pointerInteractionMovement = useRef(0)
-  const [r, setR] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
-  const [isLowPerfMode, setIsLowPerfMode] = useState(false)
+export function Globe({ className, config = GLOBE_CONFIG }) {
+  let phi = 0;
+  let width = 0;
+  const canvasRef = useRef(null);
+  const pointerInteracting = useRef(null);
+  const pointerInteractionMovement = useRef(0);
+  const [r, setR] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSmallMobile, setIsSmallMobile] = useState(false);
+  const [isLowPerfMode, setIsLowPerfMode] = useState(false);
 
   // Check if the device is mobile or low performance
   useEffect(() => {
     const checkDeviceCapabilities = () => {
-      // Check if mobile
-      const isMobileDevice = window.innerWidth < 768;
-      setIsMobile(isMobileDevice);
-      
-      // Simple performance detection
-      let isLowPerf = false;
-      
-      // Check for older browsers/devices
-      try {
-        // Try to detect low performance devices
-        const canvas = document.createElement('canvas');
-        const gl = canvas.getContext('webgl');
-        if (!gl) {
-          isLowPerf = true;
+      // Check device type with more granularity
+      const smallMobile = window.innerWidth < 480; // iPhone and small phones
+      const tablet = window.innerWidth >= 480 && window.innerWidth < 768; // iPad mini and tablets
+
+      setIsMobile(window.innerWidth < 768);
+      setIsSmallMobile(smallMobile);
+
+      // Update config for different device types
+      if (canvasRef.current) {
+        if (smallMobile) {
+          canvasRef.current.dataset.deviceType = "small-mobile";
+        } else if (tablet) {
+          canvasRef.current.dataset.deviceType = "tablet";
         } else {
-          const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-          if (debugInfo) {
-            const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            // Look for terms that might indicate lower performance
-            isLowPerf = /(intel|microsoft|swiftshader|llvmpipe)/i.test(renderer);
-          }
+          canvasRef.current.dataset.deviceType = "desktop";
         }
-      } catch (e) {
-        console.warn("Error detecting performance capabilities", e);
-        // Default to low performance mode if detection fails
-        isLowPerf = true;
       }
-      
-      setIsLowPerfMode(isLowPerf || isMobileDevice);
     };
-    
+
     checkDeviceCapabilities();
-    window.addEventListener('resize', checkDeviceCapabilities);
-    
-    return () => window.removeEventListener('resize', checkDeviceCapabilities);
+    window.addEventListener("resize", checkDeviceCapabilities);
+
+    return () => window.removeEventListener("resize", checkDeviceCapabilities);
   }, []);
 
   const updatePointerInteraction = (value) => {
-    pointerInteracting.current = value
+    pointerInteracting.current = value;
     if (canvasRef.current) {
-      canvasRef.current.style.cursor = value ? "grabbing" : "grab"
+      canvasRef.current.style.cursor = value ? "grabbing" : "grab";
     }
-  }
+  };
 
   const updateMovement = (clientX) => {
     if (pointerInteracting.current !== null) {
-      const delta = clientX - pointerInteracting.current
-      pointerInteractionMovement.current = delta
-      setR(delta / 200)
+      const delta = clientX - pointerInteracting.current;
+      pointerInteractionMovement.current = delta;
+      setR(delta / 200);
     }
-  }
+  };
 
   const onRender = useCallback(
     (state) => {
-      // Adjust rotation speed based on device type and performance
+      // Get the specific device type
+      const deviceType =
+        canvasRef.current?.dataset?.deviceType || "small-mobile";
+      const isSmallMobile = deviceType === "small-mobile";
+      const isTablet = deviceType === "tablet";
+
+      // For all devices, we want a gentle spinning effect
       if (!pointerInteracting.current) {
-        // Slower rotation for mobile and low-performance devices
-        const baseSpeed = 0.005;
-        const performanceFactor = isLowPerfMode ? 0.4 : 1;
-        const mobileFactor = isMobile ? 0.6 : 1;
-        phi += baseSpeed * performanceFactor * mobileFactor;
+        phi += 0.002; // Slower rotation for a more gentle effect
       }
-      state.phi = phi + r
-      
-      // Adjust resolution for better performance on low-end devices
-      const resolutionFactor = isLowPerfMode ? 1.5 : 2;
-      state.width = width * resolutionFactor
-      state.height = width * resolutionFactor
+
+      if (isSmallMobile) {
+        // For iPhone - now with spinning
+        state.phi = phi;
+        state.theta = 0;
+        state.width = width * 1.2;
+        state.height = width * 1.2;
+        state.offset = [0, 0];
+        return;
+      } else if (isTablet) {
+        // For tablets (like iPad Pro) - now with spinning
+        state.phi = phi;
+        state.theta = 0;
+        state.width = width * 2.5;
+        state.height = width * 2.5;
+        state.offset = [0, 0];
+        return;
+      }
+
+      // For desktop - maintain existing rotation behavior
+      state.phi = phi + r;
+      state.width = width * 2;
+      state.height = width * 2;
     },
-    [r, isMobile, isLowPerfMode],
-  )
+    [r, width]
+  );
 
   const onResize = () => {
     if (canvasRef.current) {
-      width = canvasRef.current.offsetWidth
+      width = canvasRef.current.offsetWidth;
     }
-  }
+  };
 
   useEffect(() => {
-    window.addEventListener("resize", onResize)
-    onResize()
+    window.addEventListener("resize", onResize);
+    onResize();
 
-    // Modify config for low-performance devices
-    const adaptiveConfig = {
+    // Get the current device type
+    const deviceType = canvasRef.current?.dataset?.deviceType || "small-mobile";
+    const isSmallMobile = deviceType === "small-mobile";
+
+    // Create a device-specific configuration based on screen size
+    const smallMobileConfig = {
       ...config,
-      mapSamples: isLowPerfMode ? 8000 : config.mapSamples, // Reduce sample count
-      devicePixelRatio: isLowPerfMode ? 1 : config.devicePixelRatio, // Lower resolution
+      width: width * 1.2, // Increased slightly to fill the container
+      height: width * 1.2,
+      phi: 0,
+      theta: 0,
+      dark: 0,
+      diffuse: 0.9, // Increased diffuse for better visibility
+      mapBrightness: 1.2,
+      baseColor: [1, 1, 1],
+      markerColor: [0, 0, 0],
+      glowColor: [0.1, 0.1, 0.1],
+      offset: [0, 0],
+      mapSamples: 10000,
+      devicePixelRatio: 1,
     };
+
+    const tabletConfig = {
+      ...config,
+      width: width * 2.5,
+      height: width * 2.5,
+      phi: 0,
+      theta: 0,
+      dark: 0,
+      diffuse: 0.85,
+      mapBrightness: 1.2,
+      baseColor: [1, 1, 1],
+      markerColor: [0, 0, 0],
+      glowColor: [0.1, 0.1, 0.1],
+      offset: [0, 0],
+      mapSamples: 16000,
+      devicePixelRatio: 2,
+    };
+
+    const desktopConfig = {
+      ...config,
+      width: width * 2,
+      height: width * 2,
+    };
+
+    // Select the appropriate config based on device type
+    let adaptiveConfig;
+    if (isSmallMobile) {
+      adaptiveConfig = smallMobileConfig;
+    } else if (isMobile) {
+      adaptiveConfig = tabletConfig;
+    } else {
+      adaptiveConfig = desktopConfig;
+    }
 
     const globe = createGlobe(canvasRef.current, {
       ...adaptiveConfig,
-      width: width * (isLowPerfMode ? 1.5 : 2),
-      height: width * (isLowPerfMode ? 1.5 : 2),
       onRender,
-    })
+    });
 
     setTimeout(() => {
       if (canvasRef.current) {
-        canvasRef.current.style.opacity = "1"
+        canvasRef.current.style.opacity = "1";
       }
-    }, 200)
-    
+    }, 200);
+
     return () => {
-      globe.destroy()
-      window.removeEventListener("resize", onResize)
-    }
-  }, [isMobile, isLowPerfMode])
+      globe.destroy();
+      window.removeEventListener("resize", onResize);
+    };
+  }, [isMobile, isLowPerfMode]);
 
   return (
     <div
       className={cn(
-        "absolute inset-0 mx-auto aspect-[1/1] w-full max-w-[600px]",
-        className,
+        "relative mx-auto aspect-square w-full max-w-[600px] flex items-center justify-center overflow-hidden rounded-full cursor-grab active:cursor-grabbing",
+        isSmallMobile ? "scale-100" : "",
+        className
       )}
     >
       <canvas
         className={cn(
-          "h-full w-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size]",
+          "h-full w-full opacity-0 transition-opacity duration-500 rounded-full touch-none",
+          isSmallMobile ? "transform-gpu scale-[1.5]" : ""
         )}
         ref={canvasRef}
         onPointerDown={(e) =>
           updatePointerInteraction(
-            e.clientX - pointerInteractionMovement.current,
+            e.clientX - pointerInteractionMovement.current
           )
         }
         onPointerUp={() => updatePointerInteraction(null)}
@@ -181,5 +234,5 @@ export function Globe({
         }
       />
     </div>
-  )
-} 
+  );
+}
