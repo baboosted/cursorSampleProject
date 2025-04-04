@@ -1,0 +1,25 @@
+/* Fix for gray box in Spline scene */
+canvas {
+  background: transparent !important;
+}
+
+/* Target any potential gray containers */
+[style*="background-color: rgb(229, 229, 229)"],
+[style*="background-color: rgba(229, 229, 229"],
+[style*="background: rgb(229, 229, 229)"],
+[style*="background: rgba(229, 229, 229"] {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* Target any potential canvases or containers */
+.spline-canvas,
+.spline-container {
+  background: transparent !important;
+}
+
+/* Hide any potential overlays */
+.overlay, 
+.spline-overlay {
+  display: none !important;
+} 
