@@ -504,7 +504,7 @@ IMPORTANT INSTRUCTIONS:
     }
   };
 
-  // Handle wallet connection button click
+  // eslint-disable-next-line no-unused-vars
   const handleConnect = async () => {
     if (walletConnected) {
       await handleDisconnect();
