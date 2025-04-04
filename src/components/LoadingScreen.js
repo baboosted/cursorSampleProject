@@ -9,7 +9,7 @@ const LoadingScreen = () => {
         left: 0,
         width: "100%",
         height: "100%",
-        backgroundColor: "var(--color-background)",
+        backgroundColor: "white",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -21,9 +21,9 @@ const LoadingScreen = () => {
         style={{
           width: "80px",
           height: "80px",
-          border: "4px solid transparent",
-          borderTop: "4px solid #9945FF",
-          borderRight: "4px solid #14F195",
+          border: "4px solid rgba(0, 0, 0, 0.1)",
+          borderTop: "4px solid #000000",
+          borderRight: "4px solid #000000",
           borderRadius: "50%",
           animation: "spin 1s linear infinite",
         }}
@@ -31,7 +31,7 @@ const LoadingScreen = () => {
       <h2
         style={{
           marginTop: "2rem",
-          color: "var(--color-text)",
+          color: "#000000",
           fontSize: "1.5rem",
           fontWeight: "bold",
         }}
@@ -41,7 +41,7 @@ const LoadingScreen = () => {
       <p
         style={{
           marginTop: "0.5rem",
-          color: "var(--color-text-muted)",
+          color: "rgba(0, 0, 0, 0.6)",
           fontSize: "1rem",
         }}
       >
