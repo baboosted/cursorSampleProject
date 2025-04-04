@@ -43,18 +43,47 @@ export function Globe({
   const pointerInteractionMovement = useRef(0)
   const [r, setR] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+  const [isLowPerfMode, setIsLowPerfMode] = useState(false)
 
-  // Check if the device is mobile
+  // Check if the device is mobile or low performance
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+    const checkDeviceCapabilities = () => {
+      // Check if mobile
+      const isMobileDevice = window.innerWidth < 768;
+      setIsMobile(isMobileDevice);
+      
+      // Simple performance detection
+      let isLowPerf = false;
+      
+      // Check for older browsers/devices
+      try {
+        // Try to detect low performance devices
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl');
+        if (!gl) {
+          isLowPerf = true;
+        } else {
+          const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+          if (debugInfo) {
+            const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            // Look for terms that might indicate lower performance
+            isLowPerf = /(intel|microsoft|swiftshader|llvmpipe)/i.test(renderer);
+          }
+        }
+      } catch (e) {
+        console.warn("Error detecting performance capabilities", e);
+        // Default to low performance mode if detection fails
+        isLowPerf = true;
+      }
+      
+      setIsLowPerfMode(isLowPerf || isMobileDevice);
+    };
     
-    checkIfMobile()
-    window.addEventListener('resize', checkIfMobile)
+    checkDeviceCapabilities();
+    window.addEventListener('resize', checkDeviceCapabilities);
     
-    return () => window.removeEventListener('resize', checkIfMobile)
-  }, [])
+    return () => window.removeEventListener('resize', checkDeviceCapabilities);
+  }, []);
 
   const updatePointerInteraction = (value) => {
     pointerInteracting.current = value
@@ -73,16 +102,22 @@ export function Globe({
 
   const onRender = useCallback(
     (state) => {
-      // Adjust rotation speed based on device type
+      // Adjust rotation speed based on device type and performance
       if (!pointerInteracting.current) {
-        const rotationSpeed = isMobile ? 0.003 : 0.005
-        phi += rotationSpeed
+        // Slower rotation for mobile and low-performance devices
+        const baseSpeed = 0.005;
+        const performanceFactor = isLowPerfMode ? 0.4 : 1;
+        const mobileFactor = isMobile ? 0.6 : 1;
+        phi += baseSpeed * performanceFactor * mobileFactor;
       }
       state.phi = phi + r
-      state.width = width * 2
-      state.height = width * 2
+      
+      // Adjust resolution for better performance on low-end devices
+      const resolutionFactor = isLowPerfMode ? 1.5 : 2;
+      state.width = width * resolutionFactor
+      state.height = width * resolutionFactor
     },
-    [r, isMobile],
+    [r, isMobile, isLowPerfMode],
   )
 
   const onResize = () => {
@@ -95,10 +130,17 @@ export function Globe({
     window.addEventListener("resize", onResize)
     onResize()
 
-    const globe = createGlobe(canvasRef.current, {
+    // Modify config for low-performance devices
+    const adaptiveConfig = {
       ...config,
-      width: width * 2,
-      height: width * 2,
+      mapSamples: isLowPerfMode ? 8000 : config.mapSamples, // Reduce sample count
+      devicePixelRatio: isLowPerfMode ? 1 : config.devicePixelRatio, // Lower resolution
+    };
+
+    const globe = createGlobe(canvasRef.current, {
+      ...adaptiveConfig,
+      width: width * (isLowPerfMode ? 1.5 : 2),
+      height: width * (isLowPerfMode ? 1.5 : 2),
       onRender,
     })
 
@@ -112,7 +154,7 @@ export function Globe({
       globe.destroy()
       window.removeEventListener("resize", onResize)
     }
-  }, [isMobile])
+  }, [isMobile, isLowPerfMode])
 
   return (
     <div
