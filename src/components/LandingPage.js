@@ -51,7 +51,7 @@ const LandingPage = () => {
                 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight mb-8 text-black animate-fade leading-normal pb-2"
                 style={{ lineHeight: 1.2, paddingBottom: "0.5rem" }}
               >
-                Message Control Protocol
+                MCP Powered Agent
               </h1>
             </div>
             <p className="text-xl sm:text-2xl text-black/60 max-w-3xl mx-auto leading-relaxed animate-fadeIn">
