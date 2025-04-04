@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Header from "./components/Header";
 import LandingPage from "./components/LandingPage";
 import SolanaAiAgent from "./components/SolanaAiAgent";
 
@@ -17,7 +16,6 @@ function App() {
           overflowX: "hidden",
         }}
       >
-        <Header />
         <main
           style={{
             flex: 1,

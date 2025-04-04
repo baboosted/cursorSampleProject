@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { getCurrentSlot, getAccountBalance } from "../services/solanaService";
 import phantomWalletService from "../services/phantomWalletService";
+import { Link } from "react-router-dom";
+import "./SolanaAiAgent.css";
 
 const SolanaAiAgent = () => {
   const [messages, setMessages] = useState([
@@ -502,7 +504,7 @@ IMPORTANT INSTRUCTIONS:
     }
   };
 
-  // Handle wallet connection button click
+  // eslint-disable-next-line no-unused-vars
   const handleConnect = async () => {
     if (walletConnected) {
       await handleDisconnect();
@@ -520,410 +522,97 @@ IMPORTANT INSTRUCTIONS:
   };
 
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "1rem",
-        boxSizing: "border-box",
-      }}
-      className="solana-agent-container"
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "2rem",
-          flexWrap: "wrap",
-          gap: "1rem",
-        }}
-        className="agent-header"
-      >
-        <h1
-          style={{
-            fontSize: "1.5rem",
-            fontWeight: "bold",
-            color: "var(--color-text)",
-            margin: 0,
-          }}
-          className="agent-title"
-        >
-          Solana AI Assistant
-        </h1>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1rem",
-            flexWrap: "wrap",
-          }}
-          className="wallet-info"
-        >
-          {walletConnected && walletBalance !== null && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                padding: "0.5rem 1rem",
-                backgroundColor: "var(--color-card)",
-                borderRadius: "50px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              }}
-              className="balance-display"
+    <div className="solana-ai-agent">
+      <div className="chat-container">
+        <div className="chat-header">
+          <h1>Pathos Agent</h1>
+          <div className="chat-header-right">
+            {walletConnected && walletBalance !== null && (
+              <div className="wallet-info">
+                <div className="wallet-address">{formatAddress(publicKey)}</div>
+                <div className="wallet-balance">
+                  {walletBalance.toFixed(4)} SOL
+                </div>
+              </div>
+            )}
+            <button
+              onClick={
+                walletConnected ? handleDisconnect : handleWalletConnection
+              }
+              className={walletConnected ? "wallet-connected" : ""}
             >
-              <span style={{ color: "var(--color-text-muted)" }}>Balance:</span>
-              <span
-                style={{
-                  fontWeight: "bold",
-                  color: "var(--color-text)",
-                }}
-              >
-                {walletBalance} SOL
-              </span>
-            </div>
-          )}
-          <button
-            onClick={handleConnect}
-            style={{
-              padding: "0.5rem 1rem",
-              backgroundColor: walletConnected ? "#14F195" : "#9945FF",
-              color: "white",
-              border: "none",
-              borderRadius: "50px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "transform 0.2s, box-shadow 0.2s",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            }}
-            className="connect-button"
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-            }}
-          >
-            {walletConnected ? "Connected" : "Connect Wallet"}
-          </button>
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M3 7H21"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M7 11H9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {walletConnected ? "Disconnect" : "Connect Wallet"}
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Chat Container */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "calc(100vh - 200px)",
-          backgroundColor: "var(--color-card)",
-          borderRadius: "15px",
-          boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-          overflow: "hidden",
-        }}
-        className="chat-container"
-      >
-        {/* Messages */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "1rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-          }}
-          className="messages-container"
-          ref={messagesEndRef}
-        >
+        <div className="messages-container">
           {messages.map((message, index) => (
             <div
               key={index}
-              style={{
-                alignSelf: message.role === "user" ? "flex-end" : "flex-start",
-                maxWidth: "80%",
-                animation: "fadeIn 0.5s ease-out",
-                animationDelay: `${index * 0.1}s`,
-                opacity: 0,
-                animationFillMode: "forwards",
-              }}
-              className={`message-bubble ${message.role}`}
+              className={`message ${
+                message.role === "user" ? "user-message" : "ai-message"
+              }`}
             >
-              <div
-                style={{
-                  padding: "1rem",
-                  backgroundColor:
-                    message.role === "user"
-                      ? "#9945FF"
-                      : "var(--color-background)",
-                  color:
-                    message.role === "user" ? "white" : "var(--color-text)",
-                  borderRadius: "15px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                }}
-              >
-                {message.content}
+              <div className="message-content">{message.content}</div>
+              <div className="message-timestamp">
+                {new Date().toLocaleTimeString()}
               </div>
             </div>
           ))}
           {typingIndicator && (
-            <div
-              style={{
-                alignSelf: "flex-start",
-                maxWidth: "80%",
-                animation: "fadeIn 0.3s ease-out",
-                animationFillMode: "forwards",
-                opacity: 0,
-              }}
-              className="typing-indicator"
-            >
-              <div
-                style={{
-                  padding: "1rem",
-                  backgroundColor: "var(--color-background)",
-                  color: "var(--color-text)",
-                  borderRadius: "15px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  display: "flex",
-                  gap: "0.5rem",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: "60px",
-                }}
-              >
-                <span className="dot"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
-              </div>
+            <div className="loading">
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
-        <div
-          style={{
-            padding: "1rem",
-            borderTop: "1px solid var(--color-border)",
-            backgroundColor: "var(--color-card)",
-          }}
-          className="input-container"
-        >
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              display: "flex",
-              gap: "1rem",
-              alignItems: "center",
-            }}
-          >
+        <div className="input-container">
+          <div className="input-wrapper">
             <input
-              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleSubmit(e)}
               placeholder="Type your message..."
-              style={{
-                flex: 1,
-                padding: "0.8rem 1rem",
-                borderRadius: "50px",
-                border: "1px solid var(--color-border)",
-                backgroundColor: "var(--color-background)",
-                color: "var(--color-text)",
-                fontSize: "1rem",
-                outline: "none",
-                transition: "border-color 0.2s, box-shadow 0.2s",
-              }}
-              className="message-input"
-              onFocus={(e) => {
-                e.target.style.borderColor = "#9945FF";
-                e.target.style.boxShadow = "0 0 0 2px rgba(153, 69, 255, 0.2)";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "var(--color-border)";
-                e.target.style.boxShadow = "none";
-              }}
+              disabled={loading}
+              ref={inputRef}
             />
-            <button
-              type="submit"
-              disabled={loading || !input.trim()}
-              style={{
-                padding: "0.8rem",
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                backgroundColor: loading || !input.trim() ? "#ccc" : "#9945FF",
-                color: "white",
-                border: "none",
-                cursor: loading || !input.trim() ? "not-allowed" : "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "transform 0.2s, box-shadow 0.2s",
-              }}
-              className="send-button"
-              onMouseOver={(e) => {
-                if (!loading && input.trim()) {
-                  e.currentTarget.style.transform = "scale(1.1)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.2)";
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!loading && input.trim()) {
-                  e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.boxShadow = "none";
-                }
-              }}
-            >
-              {loading ? (
-                <div
-                  style={{
-                    width: "20px",
-                    height: "20px",
-                    border: "2px solid white",
-                    borderTopColor: "transparent",
-                    borderRadius: "50%",
-                    animation: "spin 1s linear infinite",
-                  }}
-                  className="loading-spinner"
-                />
-              ) : (
-                "➤"
-              )}
+            <button onClick={handleSubmit} disabled={loading || !input.trim()}>
+              Send
             </button>
-          </form>
+          </div>
         </div>
       </div>
-
-      <style>
-        {`
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
-          }
-          
-          .dot {
-            animation: bounce 1.4s infinite;
-            font-size: 1.5rem;
-            line-height: 1;
-          }
-          
-          .dot:nth-child(2) {
-            animation-delay: 0.2s;
-          }
-          
-          .dot:nth-child(3) {
-            animation-delay: 0.4s;
-          }
-          
-          @keyframes bounce {
-            0%, 80%, 100% {
-              transform: translateY(0);
-            }
-            40% {
-              transform: translateY(-5px);
-            }
-          }
-          
-          @media (min-width: 768px) {
-            .solana-agent-container {
-              padding: 2rem !important;
-            }
-            
-            .agent-title {
-              font-size: 2rem !important;
-            }
-            
-            .chat-container {
-              height: calc(100vh - 250px) !important;
-            }
-            
-            .message-bubble {
-              max-width: 70% !important;
-            }
-            
-            .message-input {
-              font-size: 1.1rem !important;
-              padding: 1rem 1.5rem !important;
-            }
-            
-            .send-button {
-              width: 45px !important;
-              height: 45px !important;
-            }
-          }
-          
-          @media (max-width: 480px) {
-            .solana-agent-container {
-              padding: 0.5rem !important;
-            }
-            
-            .agent-header {
-              margin-bottom: 1rem !important;
-            }
-            
-            .agent-title {
-              font-size: 1.25rem !important;
-            }
-            
-            .wallet-info {
-              width: 100% !important;
-              justify-content: space-between !important;
-            }
-            
-            .chat-container {
-              height: calc(100vh - 180px) !important;
-              border-radius: 10px !important;
-            }
-            
-            .messages-container {
-              padding: 0.5rem !important;
-            }
-            
-            .message-bubble {
-              max-width: 90% !important;
-            }
-            
-            .message-bubble > div {
-              padding: 0.8rem !important;
-              font-size: 0.9rem !important;
-            }
-            
-            .input-container {
-              padding: 0.5rem !important;
-            }
-            
-            .message-input {
-              font-size: 0.9rem !important;
-              padding: 0.6rem 1rem !important;
-            }
-            
-            .send-button {
-              width: 35px !important;
-              height: 35px !important;
-            }
-          }
-        `}
-      </style>
+      <Link to="/" className="home-button">
+        Exit Pathos
+      </Link>
     </div>
   );
 };
