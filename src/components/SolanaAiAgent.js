@@ -140,39 +140,6 @@ const SolanaAiAgent = () => {
     };
   }, [handleWalletConnection, addAssistantMessage]);
 
-  // Verify API connection on mount
-  useEffect(() => {
-    const verifyApiConnection = async () => {
-      try {
-        // Determine API URL using the same logic as callClaudeApi
-        const isVercel =
-          window.location.hostname.includes("vercel.app") ||
-          !window.location.hostname.includes("localhost");
-        const apiUrl = isVercel
-          ? "/api"
-          : process.env.REACT_APP_API_URL || "http://localhost:3001/api";
-
-        // Test both the main Claude endpoint and our test endpoint
-        const testEndpoint = `${apiUrl}/test`;
-        console.log(`Verifying API connection to ${testEndpoint}`);
-
-        const response = await fetch(testEndpoint);
-        if (response.ok) {
-          const data = await response.json();
-          console.log("API test endpoint response:", data);
-          addAssistantMessage("API connection verified successfully!");
-        } else {
-          console.error("API test endpoint error:", response.status);
-        }
-      } catch (error) {
-        console.error("API connection verification failed:", error);
-      }
-    };
-
-    // Run the verification
-    verifyApiConnection();
-  }, [addAssistantMessage]);
-
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
@@ -386,98 +353,40 @@ IMPORTANT INSTRUCTIONS:
         content: userMessage,
       });
 
-      // Determine API URL based on current URL to ensure consistency between dev and production
+      // Determine API URL based on environment
       let apiUrl;
-      const isVercel =
-        window.location.hostname.includes("vercel.app") ||
-        !window.location.hostname.includes("localhost");
-
-      if (isVercel) {
-        // Use relative URL for deployed Vercel app
-        apiUrl = "/api";
+      if (process.env.NODE_ENV === "production") {
+        // In production, use the environment variable or default to /api
+        apiUrl = process.env.REACT_APP_API_URL || "/api";
       } else {
-        // Use localhost for development
+        // In development, try to use the environment variable or default to localhost
         apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
       }
 
       console.log("Using API URL:", apiUrl);
-      console.log("Current hostname:", window.location.hostname);
-      console.log("Is Vercel deployment:", isVercel);
 
-      // Create array of endpoints to try in order of preference
-      const endpointsToTry = [];
+      // Call our backend proxy
+      const response = await fetch(`${apiUrl}/claude`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: claudeMessages,
+          system: systemPrompt,
+        }),
+      });
 
-      // In local development, prioritize the local backend
-      if (!isVercel) {
-        endpointsToTry.push(`${apiUrl}/claude`);
-        endpointsToTry.push(`/api/chat`);
-      } else {
-        // In production, try the chat API first, then the other endpoints
-        endpointsToTry.push(`/api/chat`);
-        endpointsToTry.push(`${apiUrl}/claude`);
-        endpointsToTry.push(`${apiUrl}/simple-claude`);
-      }
-
-      console.log("Endpoints to try in order:", endpointsToTry);
-
-      // Try endpoints in sequence until one works
-      let response = null;
-      let lastError = null;
-      let successEndpoint = null;
-
-      for (const endpoint of endpointsToTry) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
-          response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              messages: claudeMessages,
-              system: systemPrompt,
-            }),
-          });
-
-          if (response.ok) {
-            successEndpoint = endpoint;
-            console.log(`Success with endpoint: ${endpoint}`);
-            break;
-          } else {
-            const errorText = await response.text();
-            console.log(
-              `Endpoint ${endpoint} returned status ${response.status}: ${errorText}`
-            );
-            lastError = `${response.status} - ${errorText}`;
-            response = null;
-          }
-        } catch (error) {
-          console.log(`Endpoint ${endpoint} threw error:`, error.message);
-          lastError = error.message;
-        }
-      }
-
-      // If we have no successful response, throw an error
-      if (!response) {
-        throw new Error(`All API endpoints failed. Last error: ${lastError}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API error:", response.status, errorText);
+        throw new Error(`API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("API response:", data);
 
       if (!data.content || !data.content[0] || !data.content[0].text) {
         console.error("Unexpected API response format:", data);
-
-        // Try to handle error responses better
-        if (data.error) {
-          throw new Error(`API error: ${data.error.message || data.error}`);
-        }
-
-        // If it's a direct response from Claude (without our wrapper)
-        if (data.type === "message" && data.content) {
-          return data.content;
-        }
-
         throw new Error("Unexpected API response format");
       }
 
