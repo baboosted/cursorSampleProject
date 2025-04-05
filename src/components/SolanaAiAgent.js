@@ -404,12 +404,12 @@ IMPORTANT INSTRUCTIONS:
       console.log("Current hostname:", window.location.hostname);
       console.log("Is Vercel deployment:", isVercel);
 
-      // First try the main Claude endpoint
+      // First try the new pages/api/chat endpoint
       let response;
       let errorMessage = null;
 
       try {
-        response = await fetch(`${apiUrl}/claude`, {
+        response = await fetch(`/api/chat`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -419,20 +419,21 @@ IMPORTANT INSTRUCTIONS:
             system: systemPrompt,
           }),
         });
+
+        console.log("API response status:", response.status);
       } catch (error) {
-        console.log("Primary endpoint failed, trying fallback...");
+        console.log("Pages API endpoint failed, trying fallbacks...");
         errorMessage = error.message;
       }
 
-      // If first attempt failed, try the simple endpoint
+      // If first attempt failed, try other endpoints
       if (!response || !response.ok) {
-        const firstError = response
-          ? `${response.status} - ${await response.text()}`
-          : errorMessage;
+        const firstError = response ? `${response.status}` : errorMessage;
         console.log(`First attempt error: ${firstError}`);
 
+        // Try the api/claude endpoint
         try {
-          response = await fetch(`${apiUrl}/simple-claude`, {
+          response = await fetch(`${apiUrl}/claude`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -443,10 +444,26 @@ IMPORTANT INSTRUCTIONS:
             }),
           });
         } catch (error) {
-          console.error("Both endpoints failed");
-          throw new Error(
-            `API endpoints failed: ${firstError} and ${error.message}`
-          );
+          console.log("Second endpoint failed, trying final fallback...");
+
+          // Finally try the simple-claude endpoint
+          try {
+            response = await fetch(`${apiUrl}/simple-claude`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                messages: claudeMessages,
+                system: systemPrompt,
+              }),
+            });
+          } catch (finalError) {
+            console.error("All endpoints failed");
+            throw new Error(
+              `All API endpoints failed. Original error: ${firstError}`
+            );
+          }
         }
       }
 
@@ -460,6 +477,17 @@ IMPORTANT INSTRUCTIONS:
 
       if (!data.content || !data.content[0] || !data.content[0].text) {
         console.error("Unexpected API response format:", data);
+
+        // Try to handle error responses better
+        if (data.error) {
+          throw new Error(`API error: ${data.error.message || data.error}`);
+        }
+
+        // If it's a direct response from Claude (without our wrapper)
+        if (data.type === "message" && data.content) {
+          return data.content;
+        }
+
         throw new Error("Unexpected API response format");
       }
 
