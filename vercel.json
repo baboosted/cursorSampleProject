@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/chat", "destination": "/api/chat" },
+    { "source": "/api/chat", "destination": "/pages/api/chat" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
@@ -9,7 +9,7 @@
       "memory": 1024,
       "maxDuration": 10
     },
-    "pages/api/**/*.js": {
+    "pages/api/chat.js": {
       "memory": 1024,
       "maxDuration": 10
     }
