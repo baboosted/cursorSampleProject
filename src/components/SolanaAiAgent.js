@@ -140,6 +140,39 @@ const SolanaAiAgent = () => {
     };
   }, [handleWalletConnection, addAssistantMessage]);
 
+  // Verify API connection on mount
+  useEffect(() => {
+    const verifyApiConnection = async () => {
+      try {
+        // Determine API URL using the same logic as callClaudeApi
+        const isVercel =
+          window.location.hostname.includes("vercel.app") ||
+          !window.location.hostname.includes("localhost");
+        const apiUrl = isVercel
+          ? "/api"
+          : process.env.REACT_APP_API_URL || "http://localhost:3001/api";
+
+        // Test both the main Claude endpoint and our test endpoint
+        const testEndpoint = `${apiUrl}/test`;
+        console.log(`Verifying API connection to ${testEndpoint}`);
+
+        const response = await fetch(testEndpoint);
+        if (response.ok) {
+          const data = await response.json();
+          console.log("API test endpoint response:", data);
+          addAssistantMessage("API connection verified successfully!");
+        } else {
+          console.error("API test endpoint error:", response.status);
+        }
+      } catch (error) {
+        console.error("API connection verification failed:", error);
+      }
+    };
+
+    // Run the verification
+    verifyApiConnection();
+  }, [addAssistantMessage]);
+
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
@@ -353,17 +386,23 @@ IMPORTANT INSTRUCTIONS:
         content: userMessage,
       });
 
-      // Determine API URL based on environment
+      // Determine API URL based on current URL to ensure consistency between dev and production
       let apiUrl;
-      if (process.env.NODE_ENV === "production") {
-        // In production, use the environment variable or default to /api
-        apiUrl = process.env.REACT_APP_API_URL || "/api";
+      const isVercel =
+        window.location.hostname.includes("vercel.app") ||
+        !window.location.hostname.includes("localhost");
+
+      if (isVercel) {
+        // Use relative URL for deployed Vercel app
+        apiUrl = "/api";
       } else {
-        // In development, try to use the environment variable or default to localhost
+        // Use localhost for development
         apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
       }
 
       console.log("Using API URL:", apiUrl);
+      console.log("Current hostname:", window.location.hostname);
+      console.log("Is Vercel deployment:", isVercel);
 
       // Call our backend proxy
       const response = await fetch(`${apiUrl}/claude`, {
