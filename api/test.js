@@ -1,4 +1,4 @@
-export default function handler(req, res) {
+module.exports = (req, res) => {
   // Enable CORS
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -23,5 +23,6 @@ export default function handler(req, res) {
     env: process.env.NODE_ENV,
     time: new Date().toISOString(),
     vercel: process.env.VERCEL ? true : false,
+    apiKey: process.env.CLAUDE_API_KEY ? "Present" : "Missing",
   });
-}
+};

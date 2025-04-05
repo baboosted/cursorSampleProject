@@ -404,17 +404,51 @@ IMPORTANT INSTRUCTIONS:
       console.log("Current hostname:", window.location.hostname);
       console.log("Is Vercel deployment:", isVercel);
 
-      // Call our backend proxy
-      const response = await fetch(`${apiUrl}/claude`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: claudeMessages,
-          system: systemPrompt,
-        }),
-      });
+      // First try the main Claude endpoint
+      let response;
+      let errorMessage = null;
+
+      try {
+        response = await fetch(`${apiUrl}/claude`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: claudeMessages,
+            system: systemPrompt,
+          }),
+        });
+      } catch (error) {
+        console.log("Primary endpoint failed, trying fallback...");
+        errorMessage = error.message;
+      }
+
+      // If first attempt failed, try the simple endpoint
+      if (!response || !response.ok) {
+        const firstError = response
+          ? `${response.status} - ${await response.text()}`
+          : errorMessage;
+        console.log(`First attempt error: ${firstError}`);
+
+        try {
+          response = await fetch(`${apiUrl}/simple-claude`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messages: claudeMessages,
+              system: systemPrompt,
+            }),
+          });
+        } catch (error) {
+          console.error("Both endpoints failed");
+          throw new Error(
+            `API endpoints failed: ${firstError} and ${error.message}`
+          );
+        }
+      }
 
       if (!response.ok) {
         const errorText = await response.text();

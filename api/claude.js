@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -46,6 +46,12 @@ export default async function handler(req, res) {
     console.log("System prompt length:", system ? system.length : 0);
     console.log("Messages count:", messages ? messages.length : 0);
 
+    // Check for missing API key
+    if (!apiKey) {
+      console.error("API key is missing");
+      return res.status(500).json({ error: "API key configuration error" });
+    }
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -85,4 +91,4 @@ export default async function handler(req, res) {
       .status(500)
       .json({ error: "Internal server error", details: error.message });
   }
-}
+};
