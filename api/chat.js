@@ -23,6 +23,21 @@ module.exports = async (req, res) => {
     // Use direct API key
     const apiKey = process.env.CLAUDE_API_KEY;
 
+    // Use model from environment variables if available, with fallbacks
+    let modelName = process.env.CLAUDE_MODEL;
+
+    // If model name includes a date suffix, strip it
+    if (modelName && modelName.match(/-\d{8}$/)) {
+      modelName = modelName.replace(/-\d{8}$/, "");
+    }
+
+    // Default to haiku if no model set
+    if (!modelName) {
+      modelName = "claude-3-haiku";
+    }
+
+    console.log("Using model:", modelName);
+
     if (!apiKey) {
       console.error("Missing CLAUDE_API_KEY environment variable");
       return res.status(500).json({
@@ -42,7 +57,7 @@ module.exports = async (req, res) => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-3-haiku",
+        model: modelName,
         messages,
         system,
         max_tokens: 1000,

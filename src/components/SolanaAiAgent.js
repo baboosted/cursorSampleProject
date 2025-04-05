@@ -404,36 +404,31 @@ IMPORTANT INSTRUCTIONS:
       console.log("Current hostname:", window.location.hostname);
       console.log("Is Vercel deployment:", isVercel);
 
-      // First try the new pages/api/chat endpoint
-      let response;
-      let errorMessage = null;
+      // Create array of endpoints to try in order of preference
+      const endpointsToTry = [];
 
-      try {
-        response = await fetch(`/api/chat`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messages: claudeMessages,
-            system: systemPrompt,
-          }),
-        });
-
-        console.log("API response status:", response.status);
-      } catch (error) {
-        console.log("Pages API endpoint failed, trying fallbacks...");
-        errorMessage = error.message;
+      // In local development, prioritize the local backend
+      if (!isVercel) {
+        endpointsToTry.push(`${apiUrl}/claude`);
+        endpointsToTry.push(`/api/chat`);
+      } else {
+        // In production, try the chat API first, then the other endpoints
+        endpointsToTry.push(`/api/chat`);
+        endpointsToTry.push(`${apiUrl}/claude`);
+        endpointsToTry.push(`${apiUrl}/simple-claude`);
       }
 
-      // If first attempt failed, try other endpoints
-      if (!response || !response.ok) {
-        const firstError = response ? `${response.status}` : errorMessage;
-        console.log(`First attempt error: ${firstError}`);
+      console.log("Endpoints to try in order:", endpointsToTry);
 
-        // Try the api/claude endpoint
+      // Try endpoints in sequence until one works
+      let response = null;
+      let lastError = null;
+      let successEndpoint = null;
+
+      for (const endpoint of endpointsToTry) {
         try {
-          response = await fetch(`${apiUrl}/claude`, {
+          console.log(`Trying endpoint: ${endpoint}`);
+          response = await fetch(endpoint, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -443,37 +438,32 @@ IMPORTANT INSTRUCTIONS:
               system: systemPrompt,
             }),
           });
-        } catch (error) {
-          console.log("Second endpoint failed, trying final fallback...");
 
-          // Finally try the simple-claude endpoint
-          try {
-            response = await fetch(`${apiUrl}/simple-claude`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                messages: claudeMessages,
-                system: systemPrompt,
-              }),
-            });
-          } catch (finalError) {
-            console.error("All endpoints failed");
-            throw new Error(
-              `All API endpoints failed. Original error: ${firstError}`
+          if (response.ok) {
+            successEndpoint = endpoint;
+            console.log(`Success with endpoint: ${endpoint}`);
+            break;
+          } else {
+            const errorText = await response.text();
+            console.log(
+              `Endpoint ${endpoint} returned status ${response.status}: ${errorText}`
             );
+            lastError = `${response.status} - ${errorText}`;
+            response = null;
           }
+        } catch (error) {
+          console.log(`Endpoint ${endpoint} threw error:`, error.message);
+          lastError = error.message;
         }
       }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API error:", response.status, errorText);
-        throw new Error(`API error: ${response.status} - ${errorText}`);
+      // If we have no successful response, throw an error
+      if (!response) {
+        throw new Error(`All API endpoints failed. Last error: ${lastError}`);
       }
 
       const data = await response.json();
+      console.log("API response:", data);
 
       if (!data.content || !data.content[0] || !data.content[0].text) {
         console.error("Unexpected API response format:", data);
