@@ -26,24 +26,25 @@ module.exports = async (req, res) => {
   try {
     const { messages, system } = req.body;
 
-    // Get API key and model from environment variables or use defaults
+    // Get API key from environment variables
     const apiKey =
       process.env.CLAUDE_API_KEY || process.env.REACT_APP_CLAUDE_API_KEY;
 
-    // Use the model from environment variable or default to claude-3-sonnet
-    // Remove any date suffix (like -20240229) if present
-    let modelName = process.env.CLAUDE_MODEL || "claude-3-sonnet";
-    // If the model has a date suffix (e.g., claude-3-opus-20240229), strip it to the base name
-    modelName = modelName.replace(/-\d{8}$/, "");
+    // Always use claude-3-haiku which is widely available
+    const modelName = "claude-3-haiku";
 
     console.log("Using model:", modelName);
-    console.log(
-      "Making Claude API request with system prompt:",
-      system ? system.substring(0, 50) + "..." : "None"
-    );
-
-    // Log API key presence (not the actual key)
     console.log("API key available:", !!apiKey);
+    console.log(
+      "API key prefix:",
+      apiKey ? apiKey.substring(0, 10) + "..." : "none"
+    );
+    console.log(
+      "Anthropic Version:",
+      process.env.ANTHROPIC_VERSION || "2023-06-01"
+    );
+    console.log("System prompt length:", system ? system.length : 0);
+    console.log("Messages count:", messages ? messages.length : 0);
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -63,15 +64,24 @@ module.exports = async (req, res) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Claude API error:", response.status, errorText);
+      console.error("Claude API error details:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorText: errorText,
+        headers: Object.fromEntries([...response.headers.entries()]),
+      });
       return res.status(response.status).json({ error: errorText });
     }
 
     const data = await response.json();
-    console.log("Claude API response received");
+    console.log("Claude API response received successfully");
     return res.json(data);
   } catch (error) {
-    console.error("Server error:", error);
+    console.error("Server error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return res
       .status(500)
       .json({ error: "Internal server error", details: error.message });
