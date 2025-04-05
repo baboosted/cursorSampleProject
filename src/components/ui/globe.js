@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react"
-import createGlobe from "cobe"
-import { cn } from "../../lib/utils"
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import createGlobe from "cobe";
+import { cn } from "../../lib/utils";
 
 const GLOBE_CONFIG = {
   width: 800,
@@ -30,105 +30,102 @@ const GLOBE_CONFIG = {
     { location: [34.6937, 135.5022], size: 0.05 },
     { location: [41.0082, 28.9784], size: 0.06 },
   ],
-}
+};
 
-export function Globe({
-  className,
-  config = GLOBE_CONFIG,
-}) {
-  let phi = 0
-  let width = 0
-  const canvasRef = useRef(null)
-  const pointerInteracting = useRef(null)
-  const pointerInteractionMovement = useRef(0)
-  const [r, setR] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
+export function Globe({ className, config = GLOBE_CONFIG }) {
+  let phi = 0;
+  let width = 0;
+  const canvasRef = useRef(null);
+  const pointerInteracting = useRef(null);
+  const pointerInteractionMovement = useRef(0);
+  const [r, setR] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Check if the device is mobile
   useEffect(() => {
     const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkIfMobile()
-    window.addEventListener('resize', checkIfMobile)
-    
-    return () => window.removeEventListener('resize', checkIfMobile)
-  }, [])
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
 
   const updatePointerInteraction = (value) => {
-    pointerInteracting.current = value
+    pointerInteracting.current = value;
     if (canvasRef.current) {
-      canvasRef.current.style.cursor = value ? "grabbing" : "grab"
+      canvasRef.current.style.cursor = value ? "grabbing" : "grab";
     }
-  }
+  };
 
   const updateMovement = (clientX) => {
     if (pointerInteracting.current !== null) {
-      const delta = clientX - pointerInteracting.current
-      pointerInteractionMovement.current = delta
-      setR(delta / 200)
+      const delta = clientX - pointerInteracting.current;
+      pointerInteractionMovement.current = delta;
+      setR(delta / 200);
     }
-  }
+  };
 
   const onRender = useCallback(
     (state) => {
       // Adjust rotation speed based on device type
       if (!pointerInteracting.current) {
-        const rotationSpeed = isMobile ? 0.003 : 0.005
-        phi += rotationSpeed
+        const rotationSpeed = isMobile ? 0.003 : 0.005;
+        phi += rotationSpeed;
       }
-      state.phi = phi + r
-      state.width = width * 2
-      state.height = width * 2
+      state.phi = phi + r;
+      state.width = width * 2;
+      state.height = width * 2;
     },
-    [r, isMobile],
-  )
+    [r, isMobile]
+  );
 
   const onResize = () => {
     if (canvasRef.current) {
-      width = canvasRef.current.offsetWidth
+      width = canvasRef.current.offsetWidth;
     }
-  }
+  };
 
   useEffect(() => {
-    window.addEventListener("resize", onResize)
-    onResize()
+    window.addEventListener("resize", onResize);
+    onResize();
 
     const globe = createGlobe(canvasRef.current, {
       ...config,
       width: width * 2,
       height: width * 2,
       onRender,
-    })
+    });
 
     setTimeout(() => {
       if (canvasRef.current) {
-        canvasRef.current.style.opacity = "1"
+        canvasRef.current.style.opacity = "1";
       }
-    }, 200)
-    
+    }, 200);
+
     return () => {
-      globe.destroy()
-      window.removeEventListener("resize", onResize)
-    }
-  }, [isMobile])
+      globe.destroy();
+      window.removeEventListener("resize", onResize);
+    };
+  }, [isMobile]);
 
   return (
     <div
       className={cn(
         "absolute inset-0 mx-auto aspect-[1/1] w-full max-w-[600px]",
-        className,
+        className
       )}
     >
       <canvas
         className={cn(
-          "h-full w-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size]",
+          "h-full w-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size]"
         )}
         ref={canvasRef}
         onPointerDown={(e) =>
           updatePointerInteraction(
-            e.clientX - pointerInteractionMovement.current,
+            e.clientX - pointerInteractionMovement.current
           )
         }
         onPointerUp={() => updatePointerInteraction(null)}
@@ -139,5 +136,5 @@ export function Globe({
         }
       />
     </div>
-  )
-} 
+  );
+}

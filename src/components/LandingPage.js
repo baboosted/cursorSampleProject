@@ -31,7 +31,7 @@ const LandingPage = () => {
                 PATHOS
               </span>
               <span className="text-xs font-medium text-black/40 group-hover:text-black/60 transition-colors">
-                MCP
+                MCP on Solana
               </span>
             </a>
             <div className="flex items-center space-x-6">
