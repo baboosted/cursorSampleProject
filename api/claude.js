@@ -26,27 +26,34 @@ module.exports = async (req, res) => {
   try {
     const { messages, system } = req.body;
 
+    // Get API key and model from environment variables or use defaults
+    const apiKey =
+      process.env.CLAUDE_API_KEY || process.env.REACT_APP_CLAUDE_API_KEY;
+
+    // Use the model from environment variable or default to claude-3-sonnet
+    // Remove any date suffix (like -20240229) if present
+    let modelName = process.env.CLAUDE_MODEL || "claude-3-sonnet";
+    // If the model has a date suffix (e.g., claude-3-opus-20240229), strip it to the base name
+    modelName = modelName.replace(/-\d{8}$/, "");
+
+    console.log("Using model:", modelName);
     console.log(
       "Making Claude API request with system prompt:",
       system ? system.substring(0, 50) + "..." : "None"
     );
 
     // Log API key presence (not the actual key)
-    console.log(
-      "API key available:",
-      !!process.env.CLAUDE_API_KEY || !!process.env.REACT_APP_CLAUDE_API_KEY
-    );
+    console.log("API key available:", !!apiKey);
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key":
-          process.env.CLAUDE_API_KEY || process.env.REACT_APP_CLAUDE_API_KEY,
+        "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-3-sonnet",
+        model: modelName,
         messages,
         system,
         max_tokens: 1000,
