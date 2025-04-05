@@ -31,16 +31,22 @@ module.exports = async (req, res) => {
       system ? system.substring(0, 50) + "..." : "None"
     );
 
+    // Log API key presence (not the actual key)
+    console.log(
+      "API key available:",
+      !!process.env.CLAUDE_API_KEY || !!process.env.REACT_APP_CLAUDE_API_KEY
+    );
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key":
-          process.env.REACT_APP_CLAUDE_API_KEY || process.env.CLAUDE_API_KEY,
+          process.env.CLAUDE_API_KEY || process.env.REACT_APP_CLAUDE_API_KEY,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-3-sonnet-20240229",
+        model: "claude-3-sonnet",
         messages,
         system,
         max_tokens: 1000,
